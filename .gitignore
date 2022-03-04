@@ -1,1 +1,12 @@
 .vscode
+
+# xcode project files
+*.xcodeproj
+*.xcworkspace
+
+# output files
+bin/
+bin-int/
+
+# SPIR-V output files
+*.spv
