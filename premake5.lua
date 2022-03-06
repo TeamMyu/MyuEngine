@@ -9,8 +9,10 @@ project "Myu"
    targetdir "bin/%{cfg.buildcfg}"
    objdir "bin-int/%{cfg.buildcfg}"
 
-   files { "src/**.h", "src/**.cpp" }
+   files { "src/**.hpp", "src/**.cpp" }
 
+   VulkanSDK_PATH = os.getenv("VULKAN_SDK")
+   
    filter "system:macosx"
       sysincludedirs
       {
@@ -27,6 +29,25 @@ project "Myu"
           "vendor/macOS/lib/libglfw.3.3.dylib",
           "vendor/VulkanSDK/1.3.204.0/macOS/lib/libvulkan.1.dylib",
           "vendor/VulkanSDK/1.3.204.0/macOS/lib/libvulkan.1.3.204.dylib"
+      }
+
+   filter "system:windows"
+      architecture "x64"
+      sysincludedirs
+      {
+          "src",
+          "vendor/Windows/include",
+          VulkanSDK_PATH.."/Include"
+      }
+      libdirs
+      {
+          "vendor/Windows/lib",
+          VulkanSDK_PATH.."/Lib"
+      }
+      links
+      {
+          "glfw3.lib",
+          "vulkan-1.lib",
       }
 
    filter "configurations:Debug"
