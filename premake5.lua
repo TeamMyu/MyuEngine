@@ -17,7 +17,6 @@ project "Myu"
    filter "system:macosx"
       sysincludedirs
       {
-          "src",
           "vendor/macOS/include",
           (OSX_Vulkan_PATH .. "/macOS/include")
       }
@@ -37,7 +36,6 @@ project "Myu"
       architecture "x64"
       sysincludedirs
       {
-          "src",
           "vendor/Windows/include",
           VulkanSDK_PATH.."/Include"
       }
