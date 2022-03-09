@@ -1,9 +1,10 @@
 #include "Utils.hpp"
-#include "GraphicsPipeline.hpp"
+#include "VulkanPipeline.hpp"
+#include "VulkanInstance.hpp"
 
 namespace VulkanWrapper
 {
-    VkShaderModule GraphicsPipeline::createShaderModule(const VkDevice& device, const std::vector<char>& code)
+    VkShaderModule VulkanPipeline::createShaderModule(const VkDevice& device, const std::vector<char>& code)
     {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -18,10 +19,9 @@ namespace VulkanWrapper
         return shaderModule;
     }
 
-    GraphicsPipeline::GraphicsPipeline(const PipelineSpecification &spec)
-        : m_Specification(spec)
+    VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
     {
-        auto device = spec.device;
+        auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
         auto vertShaderCode = Utils::readFile("shaders/vert.spv");
         auto fragShaderCode = Utils::readFile("shaders/frag.spv");
 
@@ -129,7 +129,7 @@ namespace VulkanWrapper
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.layout = m_VkpipelineLayout;
-        pipelineInfo.renderPass = spec.renderpass->GetVulkanRenderPass();
+        pipelineInfo.renderPass = spec.renderpass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -141,9 +141,10 @@ namespace VulkanWrapper
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
     }
 
-    GraphicsPipeline::~GraphicsPipeline()
+    VulkanPipeline::~VulkanPipeline()
     {
-        vkDestroyPipeline(m_Specification.device, m_VkPipeline, nullptr);
-        vkDestroyPipelineLayout(m_Specification.device, m_VkpipelineLayout, nullptr);
+        auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
+        vkDestroyPipeline(device, m_VkPipeline, nullptr);
+        vkDestroyPipelineLayout(device, m_VkpipelineLayout, nullptr);
     }
 }

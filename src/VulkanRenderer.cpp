@@ -1,9 +1,9 @@
-#include "Renderer.hpp"
+#include "VulkanRenderer.hpp"
+#include "VulkanInstance.hpp"
 
 namespace VulkanWrapper
 {
-    Renderer::Renderer(const RendererSpecification &spec)
-        : m_Specfication(spec)
+    VulkanRenderer::VulkanRenderer(const VulkanRendererSpecification &spec)
     {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -12,7 +12,7 @@ namespace VulkanWrapper
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        auto device = spec.device;
+        auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
         for (int i = 0; i < spec.maxFrame; i++)
         {
             if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_imgAvailableSPs[i]) != VK_SUCCESS ||
@@ -24,16 +24,21 @@ namespace VulkanWrapper
         }
     }
 
-    Renderer::~Renderer()
+    VulkanRenderer::~VulkanRenderer()
     {
-
+        auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
+        for (size_t i = 0; i < m_InFlightFences.size(); i++) {
+            vkDestroySemaphore(device, m_renderFinishedSPs[i], nullptr);
+            vkDestroySemaphore(device, m_imgAvailableSPs[i], nullptr);
+            vkDestroyFence(device, m_InFlightFences[i], nullptr);
+        }
     }
 
-    void Renderer::DrawTriangle(const DrawTriangleInfo &info)
+    void VulkanRenderer::DrawTriangle(const DrawTriangleInfo &info)
     {
         // wait previous frame
         auto frameIndex = info.frameIndex;
-        auto device = m_Specfication.device;
+        auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
         vkWaitForFences(device, 1, &m_InFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
         vkResetFences(device, 1, &m_InFlightFences[frameIndex]);
 
@@ -43,16 +48,22 @@ namespace VulkanWrapper
 
         // clear data in Command Buffer
         auto commandBuffer = info.commandBuffers[frameIndex];
-        vkResetCommandBuffer(commandBuffer.GetVkCommandBuffer(frameIndex), 0);
+        vkResetCommandBuffer(commandBuffer, 0);
 
         // Start recording command buffer
-        // TOOD: remove frameIndex parameter
-        commandBuffer.Begin(frameIndex);
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = 0;                  // Optional
+        beginInfo.pInheritanceInfo = nullptr; // Optional
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to begin recording command buffer!");
+        }
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = info.renderpass->GetVulkanRenderPass();
-        renderPassInfo.framebuffer = info.frameBuffer->GetVulkanFrameBuffer();
+        renderPassInfo.renderPass = info.renderpass;
+        renderPassInfo.framebuffer = info.frameBuffer;
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = info.extent;
 
@@ -61,18 +72,19 @@ namespace VulkanWrapper
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
-        auto vkCommandBuffer = commandBuffer.GetVkCommandBuffer(frameIndex);
-        auto pipeline = info.pipeline->GetVulkanPipeline();
-        vkCmdBeginRenderPass(vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-            vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
 
-            vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
+            vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
-        vkCmdEndRenderPass(vkCommandBuffer);
+        vkCmdEndRenderPass(commandBuffer);
 
         // End recording command buffer
-        commandBuffer.End(frameIndex);
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to record command buffer!");
+        }
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -83,7 +95,7 @@ namespace VulkanWrapper
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &vkCommandBuffer;
+        submitInfo.pCommandBuffers = &commandBuffer;
 
         VkSemaphore signalSemaphores[] = {m_renderFinishedSPs[frameIndex]};
         submitInfo.signalSemaphoreCount = 1;

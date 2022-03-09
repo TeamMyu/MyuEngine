@@ -10,7 +10,7 @@ namespace VulkanWrapper
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-        for (const char* layerName : m_ValidationLayers) {
+        for (auto layerName : m_ValidationLayers) {
             bool layerFound = false;
 
             for (const auto& layerProperties : availableLayers) {

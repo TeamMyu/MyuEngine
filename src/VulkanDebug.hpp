@@ -3,6 +3,9 @@
 #include "Vulkan.hpp"
 #include "VulkanInstance.hpp"
 
+#include <iostream>
+#include <vector>
+
 namespace VulkanWrapper
 {
     const std::vector<const char*> &m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };

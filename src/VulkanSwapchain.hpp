@@ -8,14 +8,14 @@
 
 namespace VulkanWrapper
 {
-	struct SwapChainSupportDetails
+    struct SwapChainSupportDetails
 	{
 		VkSurfaceCapabilitiesKHR capabilities;		// �̹��� �ػ�, ť ������ ��
 		std::vector<VkSurfaceFormatKHR> formats;	// �ȼ� ����(RGBA ��), �÷� �����̽�(32bpp ��)
 		std::vector<VkPresentModeKHR> presentModes; // ȭ�� ��ȯ ���
 	};
 
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 	{
 		SwapChainSupportDetails details;
 

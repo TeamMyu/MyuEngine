@@ -32,10 +32,10 @@ namespace VulkanWrapper
 
     // �ϳ��� ���� ����̽��� �������� ���� ����̽��� ������ �� ����, �̶� extension, queue family�� �ٸ� �� ����
     void VulkanDevice::createLogicalDevice(const VkSurfaceKHR &surface) {
-        QueueFamilyIndices indices = findQueueFamilies(m_PhysicalDevice, surface);
+        m_indices = findQueueFamilies(m_PhysicalDevice, surface);
 
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos; // �ʿ��� Queue Family ã��
-        std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+        std::set<uint32_t> uniqueQueueFamilies = { m_indices.graphicsFamily.value(), m_indices.presentFamily.value() };
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -76,8 +76,8 @@ namespace VulkanWrapper
         // Queue�� ������ġ�� �Բ� ���������� ���� Handle�� ��ƾ� ��
         // ������ Queue�� ������ġ�� �Բ� �ڵ����� �ı���
 
-        vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicsQueue);
-        vkGetDeviceQueue(m_Device, indices.presentFamily.value(), 0, &m_PresentQueue);
+        vkGetDeviceQueue(m_Device, m_indices.graphicsFamily.value(), 0, &m_GraphicsQueue);
+        vkGetDeviceQueue(m_Device, m_indices.presentFamily.value(), 0, &m_PresentQueue);
     }
 
     VulkanDevice::VulkanDevice(const VkSurfaceKHR& surface)

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Vulkan.hpp"
-#include "RenderPass.hpp"
 
 #include <vector>
 
@@ -9,16 +8,16 @@ namespace VulkanWrapper
 {
     struct PipelineSpecification
     {
-        VkDevice device;
-        RenderPass* renderpass;
+        VkRenderPass renderpass;
         VkExtent2D extent;
     };
 
-    class GraphicsPipeline
+    class VulkanPipeline
     {
     public:
-        GraphicsPipeline(const PipelineSpecification &spec);
-        ~GraphicsPipeline();
+        VulkanPipeline(const PipelineSpecification &spec);
+        ~VulkanPipeline();
+
         VkShaderModule createShaderModule(const VkDevice &device, const std::vector<char> &code);
         VkPipeline GetVulkanPipeline() { return m_VkPipeline; }
         VkPipelineLayout GetVulkanPipelineLayout() {return m_VkpipelineLayout;}
@@ -26,6 +25,5 @@ namespace VulkanWrapper
     private:
         VkPipeline m_VkPipeline;
         VkPipelineLayout m_VkpipelineLayout;
-        PipelineSpecification m_Specification;
     };
 }

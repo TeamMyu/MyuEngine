@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Vulkan.hpp"
-#include "VulkanDebug.hpp"
 #include "VulkanDevice.hpp"
+#include "VulkanDebug.hpp"
 
 namespace VulkanWrapper
 {
