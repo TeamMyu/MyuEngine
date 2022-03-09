@@ -17,13 +17,11 @@ namespace VulkanWrapper
 	class VulkanImageView
 	{
 	public:
-		VulkanImageView(const ImageViewSpecification& imageViewSpecification);
+		VulkanImageView(const ImageViewSpecification &imageViewSpecification);
 		~VulkanImageView();
 		std::vector<VkImageView> GetImageViews() { return m_ImageViews; }
 
 	private:
-		std::vector<VkImageView> m_ImageView;
-
+		std::vector<VkImageView> m_ImageViews;
 	};
 }
-

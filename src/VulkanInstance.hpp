@@ -18,15 +18,12 @@ namespace VulkanWrapper
             return *_inst;
         }
 
-        VulkanDevice GetDevice() { return *m_Device; }
-
         VkInstance GetVkInstance() { return m_VkInstance; }
 
         std::vector<const char*> getRequiredExtensions();
 
     private:
         VkInstance m_VkInstance;
-        VulkanDevice* m_Device;
 
         VulkanInstance();
     };

@@ -4,27 +4,30 @@
 
 namespace VulkanWrapper
 {
-    VulkanImageView::VulkanImageView(const ImageViewSpecification& imageViewSpecification) {
-        m_ImageView.resize(imageViewSpecification.images.size());
+    VulkanImageView::VulkanImageView(const ImageViewSpecification &imageViewSpecification)
+    {
+        m_ImageViews.resize(imageViewSpecification.images.size());
 
         auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
-        for (size_t i = 0; i < imageViewSpecification.images.size(); i++) {
+        for (size_t i = 0; i < imageViewSpecification.images.size(); i++)
+        {
             VkImageViewCreateInfo createInfo{};
-            createInfo.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            createInfo.image    = imageViewSpecification.images[i];
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = imageViewSpecification.images[i];
             createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            createInfo.format   = imageViewSpecification.format;
+            createInfo.format = imageViewSpecification.format;
             createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
             createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
             createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-            createInfo.subresourceRange.baseMipLevel   = 0;
-            createInfo.subresourceRange.levelCount     = 1;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
-            createInfo.subresourceRange.layerCount     = 1;
+            createInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(device, &createInfo, nullptr, &m_ImageViews[i]) != VK_SUCCESS) {
+            if (vkCreateImageView(device, &createInfo, nullptr, &m_ImageViews[i]) != VK_SUCCESS)
+            {
                 throw std::runtime_error("failed to create image views!");
             }
         }
@@ -33,8 +36,8 @@ namespace VulkanWrapper
     VulkanImageView::~VulkanImageView()
     {
         auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
-        for (auto imageView : m_ImageView)
-            vkDestroyImageView(device, m_ImageView, nullptr);
+        for (auto imageView : m_ImageViews)
+            vkDestroyImageView(device, imageView, nullptr);
     }
 
 }
