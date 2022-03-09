@@ -1,6 +1,6 @@
 #include "VulkanUtils.hpp"
 
-namespace VulkanUtils
+namespace VulkanWrapper
 {
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
         QueueFamilyIndices indices;
