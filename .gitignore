@@ -5,6 +5,7 @@
 *.xcworkspace
 
 # vs project files
+.vs
 *.vcxproj
 *.vcxproj.user
 *.sln
