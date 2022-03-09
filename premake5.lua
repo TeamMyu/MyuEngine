@@ -34,14 +34,16 @@ project "Myu"
 
    filter "system:windows"
       architecture "x64"
-      sysincludedirs
+      includedirs
       {
-          "vendor/Windows/include",
+          "vendor/Windows/GLFW/include",
+          "vendor/Windows/stb_image",
+          "vendor/Windows/tinyobjloader",
           VulkanSDK_PATH.."/Include"
       }
       libdirs
       {
-          "vendor/Windows/lib",
+          "vendor/Windows/GLFW/lib",
           VulkanSDK_PATH.."/Lib"
       }
       links
