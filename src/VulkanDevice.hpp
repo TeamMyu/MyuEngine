@@ -1,29 +1,117 @@
 #pragma once
 
-#include <VulkanWrapper.hpp>
+#include "Vulkan.hpp"
+
+#include "VulkanSwapchain.hpp"
+
+#include <vector>
+#include <optional>
+#include <set>
 
 namespace VulkanWrapper
 {
+	const std::vector<const char *> &m_DeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+	struct QueueFamilyIndices
+	{
+		std::optional<uint32_t> graphicsFamily;
+		std::optional<uint32_t> presentFamily;
+
+		bool isComplete()
+		{
+			return graphicsFamily.has_value() && presentFamily.has_value();
+		}
+	};
+
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		QueueFamilyIndices indices;
+
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¥ï¿½Ð¹Ð¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data()); // Å¥ ï¿½Ð¹Ð¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+		int i = 0;
+		for (const auto &queueFamily : queueFamilies)
+		{
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{								// ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½
+				indices.graphicsFamily = i; // ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			}
+
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport); // Surfaceï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+			if (presentSupport)
+			{
+				indices.presentFamily = i; // ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			}
+
+			if (indices.isComplete())
+			{
+				break;
+			}
+
+			i++;
+		}
+
+		return indices; // ï¿½×·ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ Å¥ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ô´Ï´ï¿½.
+	}
+
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device)
+	{
+		uint32_t extensionCount;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data()); // È®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½
+
+		std::set<std::string> requiredExtensions(m_DeviceExtensions.begin(), m_DeviceExtensions.end()); // ï¿½ä±¸ï¿½Ï´ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+		for (const auto &extension : availableExtensions)
+		{
+			requiredExtensions.erase(extension.extensionName); // ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ È®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		}
+
+		return requiredExtensions.empty(); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù´ï¿½ ï¿½ï¿½
+	}
+
+	bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		QueueFamilyIndices indices = findQueueFamilies(device, surface);
+
+		bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+		bool swapChainAdequate = false;
+		if (extensionsSupported)
+		{
+			SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
+			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+		}
+
+		return indices.isComplete() && extensionsSupported && swapChainAdequate;
+	}
+
 	class VulkanDevice
 	{
 	public:
-		void createPhysicalDevice	(const VkInstance&		 Instance,		 const VkSurfaceKHR& surface);
-		void createLogicalDevice	(const VkPhysicalDevice& physicalDevice, const VkSurfaceKHR& surface);
+		VulkanDevice(const VkSurfaceKHR &surface);
+		~VulkanDevice();
 
-		/* Ä¸½¶È­ ºÒ°¡´É ¹× º¯°æ°¡´ÉÀ¸·Î ÀÎÇØ ¹ö±×¹ß»ý ¿©Áö ÀÖÀ½
-		inline const auto& getphysicalDevice() const { return m_PhysicalDevice; }
-		inline const auto& getLogicalDevice()  const { return m_Device; }
-		inline const auto& getGraphicsQueue()  const { return m_GraphicsQueue; }
-		inline const auto& getPresentQueue()   const { return m_PresentQueue; }
-		¹ÝÈ¯°ª ¼öÁ¤x ÂüÁ¶ÇüÀ¸·Î Àü´Þ -> ¹ÞÀ»¶§ ÂüÁ¶ÇüÀ¸·Î ¹Þ¾Æ¾ßÇÔ
-		*/
-		VkPhysicalDevice m_PhysicalDevice { VK_NULL_HANDLE };
-		VkDevice		 m_Device		  { VK_NULL_HANDLE };
-		VkQueue			 m_GraphicsQueue  { VK_NULL_HANDLE };
-		VkQueue			 m_PresentQueue	  { VK_NULL_HANDLE };
+		VkPhysicalDevice GetVkPhysicalDevice() { return m_PhysicalDevice; }
+		VkDevice GetVkLogicalDevice() { return m_Device; }
+		VkQueue GetVkGraphicsQueue() { return m_GraphicsQueue; }
+		VkQueue GetVkPresentQueue() { return m_PresentQueue; }
 
 	private:
+		void createPhysicalDevice(const VkSurfaceKHR &surface);
+		void createLogicalDevice(const VkSurfaceKHR &surface);
+
+		VkPhysicalDevice m_PhysicalDevice;
+		VkDevice m_Device;
+		VkQueue m_GraphicsQueue;
+		VkQueue m_PresentQueue;
 	};
 }
-
-

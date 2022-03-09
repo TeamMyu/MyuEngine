@@ -1,23 +1,41 @@
 #pragma once
 
-#include <VulkanWrapper.hpp>
+#include "Vulkan.hpp"
+#include "VulkanInstance.hpp"
 
 namespace VulkanWrapper
 {
+    const std::vector<const char*> &m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData)
+    {
+        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+        return VK_FALSE;
+    }
+
+    static void popDebugCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+    {
+        createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.pfnUserCallback = debugCallback;
+    }
+
     class VulkanDebug
     {
     public:
-        void setupDebugMessenger(const VkInstance& instance);
+        VulkanDebug();
+        ~VulkanDebug();
 
-        /* 캡슐화 불가능 및 변경가능으로 인해 버그발생 여지 있음
-        inline const auto& getInstance() const { return m_Instance; }
-        inline const auto& getDebugger()  const { return m_DebugMessenger; }
-        반환값 수정x 참조형으로 전달 -> 받을때 참조형으로 받아야함
-        */
-        VkInstance m_Instance { VK_NULL_HANDLE };
-        VkDebugUtilsMessengerEXT m_DebugMessenger { VK_NULL_HANDLE };
+        VkDebugUtilsMessengerEXT GetDebugger() { return m_DebugMessenger; }
 
     private:
+        VkDebugUtilsMessengerEXT m_DebugMessenger;
+
+        void setupDebugMessenger();
+
         VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
             const VkAllocationCallbacks* pAllocator,

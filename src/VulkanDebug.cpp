@@ -1,5 +1,6 @@
 
-#include <VulkanDebug.hpp>
+#include "VulkanDebug.hpp"
+
 namespace VulkanWrapper
 {
     bool VulkanDebug::checkValidationLayerSupport() {
@@ -27,7 +28,7 @@ namespace VulkanWrapper
         return true;
     }
 
-    void VulkanDebug::setupDebugMessenger(const VkInstance& instance)
+    void VulkanDebug::setupDebugMessenger()
     {
         if (!checkValidationLayerSupport())
             throw std::runtime_error("not support validation layer!");
@@ -35,11 +36,10 @@ namespace VulkanWrapper
         VkDebugUtilsMessengerCreateInfoEXT createInfo;
         popDebugCreateInfo(createInfo);
 
+        auto instance = VulkanInstance::instance().GetVkInstance();
         if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &m_DebugMessenger) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up debug messenger!");
         }
-
-        m_Instance = instance;
     }
 
 
@@ -51,5 +51,16 @@ namespace VulkanWrapper
         else {
             return VK_ERROR_EXTENSION_NOT_PRESENT;
         }
+    }
+
+    VulkanDebug::VulkanDebug()
+    {
+        setupDebugMessenger();
+    }
+
+    VulkanDebug::~VulkanDebug()
+    {
+        auto instance = VulkanInstance::instance().GetVkInstance();
+        DestroyDebugUtilsMessengerEXT(instance, m_DebugMessenger, nullptr);
     }
 }

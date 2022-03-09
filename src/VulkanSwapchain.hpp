@@ -1,31 +1,63 @@
 #pragma once
 
-#include <VulkanWrapper.hpp>
+#include "Vulkan.hpp"
+#include "VulkanDevice.hpp"
+
+#include <GLFW/glfw3.h>
+#include <vector>
 
 namespace VulkanWrapper
 {
+	struct SwapChainSupportDetails
+	{
+		VkSurfaceCapabilitiesKHR capabilities;		// ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½Ø»ï¿½, Å¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+		std::vector<VkSurfaceFormatKHR> formats;	// ï¿½È¼ï¿½ ï¿½ï¿½ï¿½ï¿½(RGBA ï¿½ï¿½), ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½(32bpp ï¿½ï¿½)
+		std::vector<VkPresentModeKHR> presentModes; // È­ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½
+	};
+
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		SwapChainSupportDetails details;
+
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities); // ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+		uint32_t formatCount;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+		if (formatCount != 0)
+		{
+			details.formats.resize(formatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+		}
+
+		uint32_t presentModeCount;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+
+		if (presentModeCount != 0)
+		{ // presentMode : ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ß¹ï¿½ï¿½Û¸ï¿½, ï¿½ï¿½Ã¾ï¿½ï¿½ï¿½ ï¿½ï¿½ )
+			details.presentModes.resize(presentModeCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+		}
+
+		return details;
+	}
+
 	class VulkanSwapchain
 	{
 	public:
-		void createSwapChain(GLFWwindow* window, const VkPhysicalDevice& physicalDevice, const VkDevice& device, const VkSurfaceKHR& surface);
+		VulkanSwapchain(GLFWwindow* window, const VkSurfaceKHR& surface);
 
-		const VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)	const;
-		const VkPresentModeKHR	 chooseSwapPresentMode	(const std::vector<VkPresentModeKHR>&availablePresentModes) const;
-		const VkExtent2D		 chooseSwapExtent		(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& capabilities) const;
-		
-		/* Ä¸½¶È­ ºÒ°¡´É ¹× º¯°æ°¡´ÉÀ¸·Î ÀÎÇØ ¹ö±×¹ß»ý ¿©Áö ÀÖÀ½
-		inline const auto& getInstance()	const { return m_SwapChain; }
-		inline const auto& getImages()		const { return m_SwapChainImages; }
-		inline const auto& getImageFormat() const { return m_SwapChainImageFormat; }
-		inline const auto& getExtent()		const { return m_SwapChainExtent; }
-		¹ÝÈ¯°ª ¼öÁ¤x ÂüÁ¶ÇüÀ¸·Î Àü´Þ -> ¹ÞÀ»¶§ ÂüÁ¶ÇüÀ¸·Î ¹Þ¾Æ¾ßÇÔ
-		*/
+		~VulkanSwapchain();
+
+	private:
 		VkSwapchainKHR			m_SwapChain;
 		std::vector<VkImage>	m_SwapChainImages;
 		VkFormat				m_SwapChainImageFormat;
 		VkExtent2D				m_SwapChainExtent;
 
-	private:
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) const;
+		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) const;
+		VkExtent2D chooseSwapExtent(GLFWwindow *window, const VkSurfaceCapabilitiesKHR &capabilities) const;
 
 	};
 }

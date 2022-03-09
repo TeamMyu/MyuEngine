@@ -1,19 +1,9 @@
-#include <VulkanInstance.hpp>
+#include "VulkanInstance.hpp"
+#include <iostream>
 namespace VulkanWrapper
 {
-    std::vector<const char*> VulkanInstance::getRequiredExtensions()
-    {
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-        return extensions;
-    }
-
-
-    void VulkanInstance::createInstance()
+    // TODO: need dispose function?
+    VulkanInstance::VulkanInstance()
     {
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -50,8 +40,19 @@ namespace VulkanWrapper
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
         createInfo.ppEnabledExtensionNames = extensions.data();
 
-        if (vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS) {
+        if (vkCreateInstance(&createInfo, nullptr, &m_VkInstance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
+    }
+
+    std::vector<const char*> VulkanInstance::getRequiredExtensions()
+    {
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions;
+        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+        return extensions;
     }
 }

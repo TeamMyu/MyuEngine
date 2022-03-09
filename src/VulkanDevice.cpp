@@ -1,22 +1,26 @@
-#include <VulkanDevice.hpp>
+#include "VulkanDevice.hpp"
+#include "VulkanInstance.hpp"
+
+#include <stdexcept>
 
 namespace VulkanWrapper
 {
-    void VulkanDevice::createPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface)
+    void VulkanDevice::createPhysicalDevice(const VkSurfaceKHR& surface)
     {
+        auto instance = VulkanInstance::instance().GetVkInstance();
         uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr); // ½ÇÁ¦ ¹°¸®Àû GPU¸¦ Å½»öÇÏ°í °¹¼ö ¹ÝÈ¯
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GPUï¿½ï¿½ Å½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 
         if (deviceCount == 0) {
             throw std::runtime_error("failed to find GPUs with Vulkan support!");
         }
 
         std::vector<VkPhysicalDevice> devices(deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()); // VkPhysicalDevice ¸ñ·ÏÀ» °¡Á®¿È
+        vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()); // VkPhysicalDevice ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
         for (const auto& device : devices) {
-            if (isDeviceSuitable(device, surface)) { // ¸¸¾à¿¡ ÀûÇÕÇÏ´Ù¸é
-                m_PhysicalDevice = device; // ¹Ù·Î ¼±ÅÃ, ¿©·¯°³ÀÇ ¹°¸®Àû GPU°¡ Å½»öµÈ´Ù¸é ¼º´É Æò°¡ÇÔ¼ö°¡ ÇÊ¿äÇÒ ¼ö ÀÖÀ½
+            if (isDeviceSuitable(device, surface)) { // ï¿½ï¿½ï¿½à¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´Ù¸ï¿½
+                m_PhysicalDevice = device; // ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GPUï¿½ï¿½ Å½ï¿½ï¿½ï¿½È´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 break;
             }
         }
@@ -26,20 +30,20 @@ namespace VulkanWrapper
         }
     }
 
-    // ÇÏ³ªÀÇ ¹°¸® µð¹ÙÀÌ½º¿¡ ¿©·¯°³ÀÇ ³í¸® µð¹ÙÀÌ½º°¡ Á¸ÀçÇÒ ¼ö ÀÖÀ½, ÀÌ¶§ extension, queue family°¡ ´Ù¸¦ ¼ö ÀÖÀ½
-    void VulkanDevice::createLogicalDevice(const VkPhysicalDevice &physicalDevice, const VkSurfaceKHR &surface) {
-        QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
+    // ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ì¶ï¿½ extension, queue familyï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    void VulkanDevice::createLogicalDevice(const VkSurfaceKHR &surface) {
+        QueueFamilyIndices indices = findQueueFamilies(m_PhysicalDevice, surface);
 
-        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos; // ÇÊ¿äÇÑ Queue Family Ã£À½
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos; // ï¿½Ê¿ï¿½ï¿½ï¿½ Queue Family Ã£ï¿½ï¿½
         std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uniqueQueueFamilies) {
-            VkDeviceQueueCreateInfo queueCreateInfo{}; // ¸î °³ÀÇ Queue¸¦ »ç¿ëÇÏ´ÂÁö
+            VkDeviceQueueCreateInfo queueCreateInfo{}; // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Queueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½
             queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
             queueCreateInfo.queueFamilyIndex = queueFamily;
-            queueCreateInfo.queueCount = 1; // º¸Åë ÇÏ³ªÀÇ Å¥ÆÐ¹Ð¸®¿¡¼­ ÇÏ³ªÀÇ Å¥¸¦ »ç¿ëÇÔ -> ´ÜÀÏ Å¥¿¡¼­ ¸ðµç ¸í·É ¹öÆÛ¸¦ µ¿½Ã¿¡ Ã³¸®ÇÏ±â ¶§¹®
-            queueCreateInfo.pQueuePriorities = &queuePriority; // Å¥ ¿ì¼±¼øÀ§
+            queueCreateInfo.queueCount = 1; // ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ Å¥ï¿½Ð¹Ð¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½ï¿½ï¿½ï¿½ Å¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½
+            queueCreateInfo.pQueuePriorities = &queuePriority; // Å¥ ï¿½ì¼±ï¿½ï¿½ï¿½ï¿½
             queueCreateInfos.push_back(queueCreateInfo);
         }
 
@@ -48,31 +52,42 @@ namespace VulkanWrapper
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
-        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()); // queue family °¹¼ö
-        createInfo.pQueueCreateInfos = queueCreateInfos.data(); // queue family Ãß°¡
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()); // queue family ï¿½ï¿½ï¿½ï¿½
+        createInfo.pQueueCreateInfos = queueCreateInfos.data(); // queue family ï¿½ß°ï¿½
 
         createInfo.pEnabledFeatures = &deviceFeatures;
 
-        // ±âÁ¸¿¡ VK_KHR_swapchain ExtensionÀÌ Ãß°¡µÇÀÖ´Âµ¥, ÀåÄ¡¿¡¼­ DrawµÈ ÀÌ¹ÌÁö¸¦ Window¿¡¼­ Ç¥½ÃÇÏ´Âµ¥ »ç¿ëµÊ
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(m_DeviceExtensions.size()); // extension Ãß°¡
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ VK_KHR_swapchain Extensionï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½Ö´Âµï¿½, ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ Drawï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ Windowï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´Âµï¿½ ï¿½ï¿½ï¿½ï¿½
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(m_DeviceExtensions.size()); // extension ï¿½ß°ï¿½
         createInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
 
         //if (vkContext->m_Debugger != nullptr) {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(m_ValidationLayers.size()); // layer Ãß°¡
+            createInfo.enabledLayerCount = static_cast<uint32_t>(m_ValidationLayers.size()); // layer ï¿½ß°ï¿½
             createInfo.ppEnabledLayerNames = m_ValidationLayers.data();
         //}
         //else {
         //    createInfo.enabledLayerCount = 0;
         //}
 
-        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &m_Device) != VK_SUCCESS) {
+        if (vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_Device) != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
 
-        // Queue´Â ³í¸®ÀåÄ¡¿Í ÇÔ²² »ý¼ºµÇÁö¸¸ µû·Î HandleÀ» ´ã¾Æ¾ß ÇÔ
-        // »ý¼ºµÈ Queue´Â ³í¸®ÀåÄ¡¿Í ÇÔ²² ÀÚµ¿À¸·Î ÆÄ±«µÊ
+        // Queueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Handleï¿½ï¿½ ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Queueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä±ï¿½ï¿½ï¿½
 
         vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicsQueue);
         vkGetDeviceQueue(m_Device, indices.presentFamily.value(), 0, &m_PresentQueue);
+    }
+
+    VulkanDevice::VulkanDevice(const VkSurfaceKHR& surface)
+    {
+        createPhysicalDevice(surface);
+        createLogicalDevice(surface);
+    }
+
+    VulkanDevice::~VulkanDevice()
+    {
+        vkDestroyDevice(m_Device, nullptr);
     }
 }

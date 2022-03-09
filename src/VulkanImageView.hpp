@@ -1,17 +1,29 @@
 #pragma once
 
-#include <VulkanWrapper.hpp>
+#include "Vulkan.hpp"
+#include "VulkanDevice.hpp"
+
+#include <vector>
 
 namespace VulkanWrapper
 {
+	struct ImageViewSpecification
+	{
+		std::vector<VkImage> images;
+		VkFormat format;
+		VkExtent2D extent;
+	};
+
 	class VulkanImageView
 	{
 	public:
-		void VulkanImageView::createImageViews(const VkDevice& device, const std::vector<VkImage>& images, const VkFormat& format, const VkExtent2D& extent);
-		std::vector<VkImageView> m_ImageViews;
+		VulkanImageView(const ImageViewSpecification& imageViewSpecification);
+		~VulkanImageView();
+		std::vector<VkImageView> GetImageViews() { return m_ImageViews; }
 
 	private:
-		
+		std::vector<VkImageView> m_ImageView;
+
 	};
 }
 
