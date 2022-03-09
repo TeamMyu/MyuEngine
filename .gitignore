@@ -4,6 +4,11 @@
 *.xcodeproj
 *.xcworkspace
 
+# vs project files
+*.vcxproj
+*.vcxproj.user
+*.sln
+
 # output files
 bin/
 bin-int/
