@@ -8,7 +8,7 @@
 #include <optional>
 #include <iostream>
 
-namespace VulkanUtiles
+namespace VulkanUtils
 {
     static const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
     static const std::vector<const char*> m_DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
