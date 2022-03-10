@@ -19,7 +19,7 @@ namespace VulkanWrapper
 
         auto extensions = getRequiredExtensions();
 
-        if (m_Debugger != nullptr)
+        if (enableValidationLayers)
         {
             std::cout << "debugger is not null";
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

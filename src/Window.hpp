@@ -29,7 +29,7 @@ namespace Myu
 
         VkSurfaceKHR GetSurface() { return m_surface; }
 
-        inline GLFWwindow *GetGLFWWindow() { return m_Window; }
+        GLFWwindow *GetGLFWWindow() { return m_Window; }
 
         uint32_t m_Width = 800, m_Height = 600;
         std::string m_Title;

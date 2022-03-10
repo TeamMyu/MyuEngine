@@ -1,55 +1,25 @@
 #pragma once
 
-#include "Vulkan.hpp"
-#include "VulkanDevice.hpp"
+#include "VulkanUtils.hpp"
 
-#include <GLFW/glfw3.h>
-#include <vector>
+#include <algorithm>
 
 namespace VulkanWrapper
 {
-    struct SwapChainSupportDetails
+	struct SwapchainSpecification
 	{
-		VkSurfaceCapabilitiesKHR capabilities;		// �̹��� �ػ�, ť ������ ��
-		std::vector<VkSurfaceFormatKHR> formats;	// �ȼ� ����(RGBA ��), �÷� �����̽�(32bpp ��)
-		std::vector<VkPresentModeKHR> presentModes; // ȭ�� ��ȯ ���
+		GLFWwindow* window;
+		VkSurfaceKHR surface;
 	};
-
-    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
-	{
-		SwapChainSupportDetails details;
-
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities); // ���� �Լ���. ���� ����ϰ� ������
-
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-
-		if (formatCount != 0)
-		{
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-		}
-
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0)
-		{ // presentMode : ����ü�� ���� �̹����� ȭ��� �����ϴ� ��� ( ���߹��۸�, ��þ��� �� )
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
-	}
 
 	class VulkanSwapchain
 	{
 	public:
-		VulkanSwapchain(GLFWwindow *window, const VkSurfaceKHR &surface);
+		VulkanSwapchain(const SwapchainSpecification& spec);
 
 		~VulkanSwapchain();
 
-		VkSwapchainKHR GetVkSwapChain() { return m_SwapChain; }
+		VkSwapchainKHR& GetVkSwapChain() { return m_SwapChain; }
 		std::vector<VkImage> GetVkImages() { return m_SwapChainImages; }
 		VkFormat GetVkFormat() { return m_SwapChainImageFormat; }
 		VkExtent2D GetVkExtent2D() { return m_SwapChainExtent; }

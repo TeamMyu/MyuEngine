@@ -17,12 +17,14 @@ namespace VulkanWrapper
             throw std::runtime_error("failed to create command pool!");
         }
 
+        m_VkCommandBuffers.resize(spec.bufferCount);
+
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = m_VkCommandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = spec.bufferCount;
-
+        
         if (vkAllocateCommandBuffers(device, &allocInfo, m_VkCommandBuffers.data()) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to allocate command buffers!");

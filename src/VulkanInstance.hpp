@@ -1,15 +1,13 @@
 #pragma once
 
-#include "Vulkan.hpp"
+#include "VulkanUtils.hpp"
 #include "VulkanDevice.hpp"
-#include "VulkanDebug.hpp"
 
 namespace VulkanWrapper
 {
     class VulkanInstance
     {
     public:
-        VulkanDebug* m_Debugger;
         VulkanDevice* m_Device;
 
         static VulkanInstance& instance()

@@ -1,6 +1,7 @@
-#include "Vulkan.hpp"
+#include "VulkanUtils.hpp"
+#include "VulkanDebug.hpp"
 #include "VulkanInstance.hpp"
-#include "Window.hpp"
+#include "VulkanSwapchain.hpp"
 #include "VulkanImageView.hpp"
 #include "VulkanRenderPass.hpp"
 #include "VulkanPipeline.hpp"
@@ -8,18 +9,7 @@
 #include "VulkanCommandBuffers.hpp"
 #include "VulkanRenderer.hpp"
 
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <algorithm>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <cstdint>
-#include <limits>
-#include <optional>
-#include <set>
+#include "Window.hpp"
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -73,15 +63,18 @@ private:
 
     void initVulkan()
     {
+
         // validation layeer setup
         if (enableValidationLayers)
             debugger = new VulkanWrapper::VulkanDebug();
+
+        window->createSurface();
 
         // create Physical & Logical device
         device = new VulkanWrapper::VulkanDevice(window->GetSurface());
         VulkanWrapper::VulkanInstance::instance().m_Device = device;
 
-        swapChain = new VulkanWrapper::VulkanSwapchain(window->GetGLFWWindow(), window->GetSurface());
+        swapChain = new VulkanWrapper::VulkanSwapchain({ window->GetGLFWWindow(), window->GetSurface() });
 
         imageView = new VulkanWrapper::VulkanImageView({swapChain->GetVkImages(), swapChain->GetVkFormat(), swapChain->GetVkExtent2D()});
 
@@ -109,6 +102,10 @@ private:
 
     void cleanup()
     {
+        delete renderer;
+
+        delete commandBuffers;
+
         for (auto framebuffer : frameBuffers)
             delete framebuffer;
 
@@ -152,11 +149,13 @@ private:
         std::vector<VkAttachmentDescription> attachments = {colorAttachment};
         std::vector<VkSubpassDescription> subpasses = {subpass};
         renderPass = new VulkanWrapper::VulkanRenderPass({swapChain->GetVkFormat(), subpasses, attachments});
+        
     }
 
     void createFramebuffers()
     {
         auto vkImgViews = imageView->GetImageViews();
+
         for (size_t i = 0; i < vkImgViews.size(); i++)
         {
             frameBuffers.push_back(new VulkanWrapper::VulkanFrameBuffer({vkImgViews[i], renderPass->GetVkRenderPass(),

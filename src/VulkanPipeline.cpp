@@ -22,8 +22,8 @@ namespace VulkanWrapper
     VulkanPipeline::VulkanPipeline(const PipelineSpecification& spec)
     {
         auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
-        auto vertShaderCode = Utils::readFile("shaders/vert.spv");
-        auto fragShaderCode = Utils::readFile("shaders/frag.spv");
+        auto vertShaderCode = Utils::readFile("C:/Users/mingi/Documents/MyuEngine/src/shaders/vert.spv");
+        auto fragShaderCode = Utils::readFile("C:/Users/mingi/Documents/MyuEngine/src/shaders/frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(device, vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(device, fragShaderCode);

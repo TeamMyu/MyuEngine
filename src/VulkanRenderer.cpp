@@ -5,6 +5,10 @@ namespace VulkanWrapper
 {
     VulkanRenderer::VulkanRenderer(const VulkanRendererSpecification &spec)
     {
+        m_imgAvailableSPs.resize(spec.maxFrame);
+        m_renderFinishedSPs.resize(spec.maxFrame);
+        m_InFlightFences.resize(spec.maxFrame);
+
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -13,7 +17,7 @@ namespace VulkanWrapper
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         auto device = VulkanInstance::instance().m_Device->GetVkLogicalDevice();
-        for (int i = 0; i < spec.maxFrame; i++)
+        for (size_t i = 0; i < spec.maxFrame; i++)
         {
             if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_imgAvailableSPs[i]) != VK_SUCCESS ||
                 vkCreateSemaphore(device, &semaphoreInfo, nullptr, &m_renderFinishedSPs[i]) != VK_SUCCESS ||
@@ -71,7 +75,7 @@ namespace VulkanWrapper
         VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
-
+        
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);

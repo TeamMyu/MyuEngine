@@ -10,6 +10,12 @@
 
 namespace VulkanWrapper
 {
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
+
     static const std::vector<const char*> m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
     static const std::vector<const char*> m_DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
