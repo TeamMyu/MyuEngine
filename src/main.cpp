@@ -8,8 +8,9 @@
 #include "VulkanFrameBuffer.hpp"
 #include "VulkanCommandBuffers.hpp"
 #include "VulkanRenderer.hpp"
-
 #include "Window.hpp"
+
+#include <vector>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -165,14 +166,17 @@ private:
 
     void drawFrame()
     {
+        // FIXME: framebuffer 위치를 고민해볼것
+        std::vector<VkFramebuffer> param;
+        for (int i = 0; i < frameBuffers.size(); i++)
+            param.push_back(frameBuffers[i]->GetVkFrameBuffer());
+        
         VulkanWrapper::DrawTriangleInfo info;
-        info.commandBuffers = commandBuffers->GetVkCommandBuffers();
+        info.commandBuffer = commandBuffers->GetVkCommandBuffers().at(currentFrame);
         info.extent = swapChain->GetVkExtent2D();
-        info.frameBuffer = frameBuffers[currentFrame]->GetVkFrameBuffer();
+        info.frameBuffers = param;
         info.frameIndex = currentFrame;
-        info.graphicsQueue = device->GetVkGraphicsQueue();
         info.pipeline = graphicsPipeline->GetVulkanPipeline();
-        info.presentQueue = device->GetVkPresentQueue();
         info.renderpass = renderPass->GetVkRenderPass();
         info.swapchain = swapChain->GetVkSwapChain();
 

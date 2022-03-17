@@ -13,14 +13,12 @@ namespace VulkanWrapper
 
     struct DrawTriangleInfo
     {
-        std::vector<VkCommandBuffer> commandBuffers;
+        VkCommandBuffer commandBuffer;
         VkRenderPass renderpass;
-        VkFramebuffer frameBuffer;
+        std::vector<VkFramebuffer> frameBuffers;
         VkPipeline pipeline;
         VkExtent2D extent;
         VkSwapchainKHR swapchain;
-        VkQueue graphicsQueue;
-        VkQueue presentQueue;
         int frameIndex;
     };
 

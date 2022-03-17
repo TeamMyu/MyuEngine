@@ -51,23 +51,22 @@ namespace VulkanWrapper
         vkAcquireNextImageKHR(device, info.swapchain, UINT64_MAX, m_imgAvailableSPs[frameIndex], VK_NULL_HANDLE, &imgIndex);
 
         // clear data in Command Buffer
-        auto commandBuffer = info.commandBuffers[frameIndex];
-        vkResetCommandBuffer(commandBuffer, 0);
+        vkResetCommandBuffer(info.commandBuffer, 0);
 
         // Start recording command buffer
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0;                  // Optional
         beginInfo.pInheritanceInfo = nullptr; // Optional
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+        if (vkBeginCommandBuffer(info.commandBuffer, &beginInfo) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
-
+        
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = info.renderpass;
-        renderPassInfo.framebuffer = info.frameBuffer;
+        renderPassInfo.framebuffer = info.frameBuffers[imgIndex];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = info.extent;
 
@@ -76,16 +75,16 @@ namespace VulkanWrapper
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
         
-        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(info.commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
+            vkCmdBindPipeline(info.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, info.pipeline);
 
-            vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+            vkCmdDraw(info.commandBuffer, 3, 1, 0, 0);
 
-        vkCmdEndRenderPass(commandBuffer);
+        vkCmdEndRenderPass(info.commandBuffer);
 
         // End recording command buffer
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+        if (vkEndCommandBuffer(info.commandBuffer) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to record command buffer!");
         }
@@ -99,12 +98,14 @@ namespace VulkanWrapper
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
+        submitInfo.pCommandBuffers = &info.commandBuffer;
 
         VkSemaphore signalSemaphores[] = {m_renderFinishedSPs[frameIndex]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
-        if (vkQueueSubmit(info.graphicsQueue, 1, &submitInfo, m_InFlightFences[frameIndex]) != VK_SUCCESS) {
+        
+        auto graphicsQueue = VulkanInstance::instance().m_Device->GetVkGraphicsQueue();
+        if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, m_InFlightFences[frameIndex]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
 
@@ -116,7 +117,8 @@ namespace VulkanWrapper
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imgIndex;
-
-        vkQueuePresentKHR(info.presentQueue, &presentInfo);
+        
+        auto presentQueue = VulkanInstance::instance().m_Device->GetVkPresentQueue();
+        vkQueuePresentKHR(presentQueue, &presentInfo);
     }
 }
