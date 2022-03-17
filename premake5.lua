@@ -36,6 +36,7 @@ project "Myu"
       architecture "x64"
       includedirs
       {
+          "vendor/Windows/glm",
           "vendor/Windows/GLFW/include",
           "vendor/Windows/stb_image",
           "vendor/Windows/tinyobjloader",
