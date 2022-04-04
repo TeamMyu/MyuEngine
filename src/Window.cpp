@@ -1,39 +1,37 @@
 #include "Window.hpp"
 
-namespace Myu
+namespace MyuEngine
 {
-
     Window::Window(uint32_t Width, uint32_t Height, std::string Title)
-        : m_Width{Width}, m_Height{Height}, m_Title{Title}
+        : m_Width{Width}
+        , m_Height{Height}
+        , m_Title{Title}
     {
-        initWindow();
+        createWindow();
     }
 
     Window::~Window()
     {
-        auto vkInstance = VulkanWrapper::VulkanInstance::instance().GetVkInstance();
-        vkDestroySurfaceKHR(vkInstance, m_surface, nullptr);
-
         glfwDestroyWindow(m_Window);
         glfwTerminate();
     }
 
-    inline void Window::initWindow()
+    inline void Window::createWindow()
     {
         glfwInit();
-
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        //glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
+        glfwSetWindowUserPointer(m_Window, this);
+        glfwSetFramebufferSizeCallback(m_Window, framebufferResizeCallback);
     }
 
-    void Window::createSurface()
+    void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height)
     {
-        auto vkInstance = VulkanWrapper::VulkanInstance::instance().GetVkInstance();
-        if (glfwCreateWindowSurface(vkInstance, m_Window, nullptr, &m_surface) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to craete window surface");
-        }
+        auto inst_window             = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+        inst_window->m_WindowResized = true;
+        inst_window->m_Width         = width;
+        inst_window->m_Height        = height;
     }
-}
+}  // namespace MyuEngine

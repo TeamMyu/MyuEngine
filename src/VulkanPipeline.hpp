@@ -1,29 +1,54 @@
 #pragma once
 
-#include "Vulkan.hpp"
-
-#include <vector>
+#include "VulkanDevice.hpp"
+#include "VulkanSwapchain.hpp"
 
 namespace VulkanWrapper
 {
-    struct PipelineSpecification
+    struct VulkanPipelineSpecification
     {
-        VkRenderPass renderpass;
-        VkExtent2D extent;
+        VulkanPipelineSpecification(const VulkanPipelineSpecification &) = delete;
+        VulkanPipelineSpecification &operator=(const VulkanPipelineSpecification &) = delete;
+
+        std::string vertFilepath;
+        std::string fragFilepath;
+
+        std::vector<VkVertexInputBindingDescription>   bindingDescriptions{};
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+        VkPipelineViewportStateCreateInfo              viewportInfo{};
+        VkPipelineInputAssemblyStateCreateInfo         inputAssemblyInfo{};
+        VkPipelineRasterizationStateCreateInfo         rasterizationInfo{};
+        VkPipelineMultisampleStateCreateInfo           multisampleInfo{};
+        VkPipelineColorBlendAttachmentState            colorBlendAttachment{};
+        VkPipelineColorBlendStateCreateInfo            colorBlendInfo{};
+        VkPipelineDepthStencilStateCreateInfo          depthStencilInfo{};
+        std::vector<VkDynamicState>                    dynamicStateEnables{};
+        VkPipelineDynamicStateCreateInfo               dynamicStateInfo{};
+        VkPipelineLayout                               pipelineLayout = nullptr;
+
+        VulkanPipelineSpecification();
     };
 
     class VulkanPipeline
     {
     public:
-        VulkanPipeline(const PipelineSpecification &spec);
+        VulkanPipeline(VulkanDevice &               vulkanDevice,
+                       VkRenderPass                 vkRenderPass,
+                       const VulkanPipelineSpecification &VulkanPipelineSpecification);
         ~VulkanPipeline();
 
-        VkShaderModule createShaderModule(const VkDevice &device, const std::vector<char> &code);
-        VkPipeline GetVulkanPipeline() { return m_VkPipeline; }
-        VkPipelineLayout GetVulkanPipelineLayout() {return m_VkpipelineLayout;}
+        VulkanPipeline(const VulkanPipeline &) = delete;
+        VulkanPipeline operator=(const VulkanPipeline &) = delete;
+
+        void bind(VkCommandBuffer commandBuffer);
+
+        VkShaderModule   createShaderModule(const VkDevice &device, const std::vector<char> &code);
+        VkPipeline       GetVulkanPipeline() { return m_VkPipeline; }
 
     private:
+        // Class Ref
+        VulkanDevice     &m_rVulkanDevice;
+        // ---
         VkPipeline m_VkPipeline;
-        VkPipelineLayout m_VkpipelineLayout;
     };
-}
+}  // namespace VulkanWrapper

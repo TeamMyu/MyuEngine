@@ -1,38 +1,26 @@
 #pragma once
 
-#include "Vulkan.hpp"
-
-#include <vector>
+#include "VulkanDevice.hpp"
+#include "VulkanSwapchain.hpp"
+#include "Window.hpp"
 
 namespace VulkanWrapper
 {
-    struct VulkanRendererSpecification
-    {
-        int maxFrame;
-    };
-
-    struct DrawTriangleInfo
-    {
-        VkCommandBuffer commandBuffer;
-        VkRenderPass renderpass;
-        std::vector<VkFramebuffer> frameBuffers;
-        VkPipeline pipeline;
-        VkExtent2D extent;
-        VkSwapchainKHR swapchain;
-        int frameIndex;
-    };
-
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(const VulkanRendererSpecification& spec);
-        ~VulkanRenderer();
+        VulkanRenderer(VulkanDevice& vulkanDevice, MyuEngine::Window& window);
 
-        void DrawTriangle(const DrawTriangleInfo& info);
+        void BeginDraw();
+        void EndDraw();
+        VkCommandBuffer GetCurrentBuffer() { return m_rVulkanDevice.GetCommandBuffers()[currentFrame]; }
+        uint32_t        currentFrame = 0;
 
     private:
-        std::vector<VkFence> m_InFlightFences;
-        std::vector<VkSemaphore> m_renderFinishedSPs;
-        std::vector<VkSemaphore> m_imgAvailableSPs;
+        // Class Ref
+        VulkanDevice& m_rVulkanDevice;
+        MyuEngine::Window& m_rWindow;
+        // ---
+        
     };
-}
+}  // namespace VulkanWrapper
