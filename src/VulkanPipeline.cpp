@@ -49,8 +49,8 @@ namespace VulkanWrapper
 #pragma endregion
 
 #pragma region vertex_stage
-		auto& bindingDescriptions = Vertex::getBindingDescription();
-		auto& attributeDescriptions = Vertex::getAttributeDescriptions();
+		const auto& bindingDescriptions = Vertex::getBindingDescription();
+		const auto& attributeDescriptions = Vertex::getAttributeDescriptions();
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
