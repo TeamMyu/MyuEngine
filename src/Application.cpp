@@ -1,5 +1,6 @@
 
 #include "Application.hpp"
+#include "Camera.hpp"
 
 VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout pipelineLayout;
@@ -123,8 +124,13 @@ void Application::drawFrame()
     {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+    
+    Myu::Camera cam = Myu::Camera();
+    cam.setViewTarget(glm::vec3(3, -2, 0), glm::vec3(0, 0, 0));
+    float aspect = m_Swapchain.GetVkExtent2D().width / (float)m_Swapchain.GetVkExtent2D().height;
+    cam.setPerspectiveProjection(glm::radians(45.0f), aspect, 0.1f, 10.f);
 
-    updateUniformBuffer(m_Device.GetVkLogicalDevice(), currentFrame, m_Swapchain.GetVkExtent2D(), uniformBuffersMemory);
+    updateUniformBuffer(m_Device.GetVkLogicalDevice(), currentFrame, m_Swapchain.GetVkExtent2D(), uniformBuffersMemory, glm::mat4(1.0f), cam.getView(), cam.getProjection());
 
     vkResetCommandBuffer(currentBuffer, 0);
 

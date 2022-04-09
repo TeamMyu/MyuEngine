@@ -105,7 +105,8 @@ namespace VulkanWrapper
     void copyBufferToImage (VkDevice device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
     void copyBuffer        (VkDevice device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkQueue queue, VkCommandPool commandPool);
 
-    void updateUniformBuffer(VkDevice device, uint32_t currentImage, VkExtent2D swapChainExtent, std::vector<VkDeviceMemory>& uniformBuffersMemory);
+    void updateUniformBuffer(VkDevice device, uint32_t currentImage, VkExtent2D swapChainExtent, std::vector<VkDeviceMemory> &uniformBuffersMemory,glm::mat4 modelMat,
+                             glm::mat4 viewMat, glm::mat4 projMat);
 
     void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout* descriptorSetLayout);
 
