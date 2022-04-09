@@ -26,7 +26,7 @@ VkCommandPool                m_ImGuiCommandPool;
 std::vector<VkFramebuffer>   m_ImGuiFramebuffers;
 VkRenderPass                 m_ImGuiRenderPass;
 
-VulkanModel *m_Model;
+VulkanModel* m_Model;
 
 void Application::createCommandPool(VkCommandPool* cmdPool)
 {
@@ -201,14 +201,11 @@ void Application::initEditor()
         endSingleTimeCommands(m_Device.GetVkLogicalDevice(), commandBuffer, m_Device.GetVkGraphicsQueue(), m_Device.GetVkCommandPool());
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
-
 }
 
 void Application::drawEditor()
 {
- 
 }
-
 
 Application::Application()
 {
@@ -232,7 +229,6 @@ Application::Application()
     textureImageView = createTextureImageView(m_Device.GetVkLogicalDevice(), textureImage);
     */
     createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
-    
 
     m_Model = new VulkanModel(m_Device, MODEL_PATH);
 
@@ -243,7 +239,6 @@ Application::Application()
 
 Application::~Application()
 {
-
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         vkDestroyBuffer(m_Device.GetVkLogicalDevice(), uniformBuffers[i], nullptr);
@@ -302,12 +297,14 @@ void Application::recreateSwapChain()
     m_pPipeline = new VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
 }
 
+static float ang = 0.01f;
+
 void Application::drawFrame()
 {
     auto currentFrame  = m_Renderer.currentFrame;
     auto currentBuffer = m_Renderer.GetCurrentBuffer();
 
-       glfwPollEvents();
+    glfwPollEvents();
 
     // Start the Dear ImGui frame
     ImGui_ImplVulkan_NewFrame();
@@ -354,7 +351,6 @@ void Application::drawFrame()
     // Rendering
     ImGui::Render();
 
-
     uint32_t imageIndex;
     VkResult result = m_Swapchain.AcquireNextImage(&imageIndex, currentFrame);
 
@@ -400,7 +396,6 @@ void Application::drawFrame()
     endCommandBuffer(currentBuffer);
 
     {
-    
         VkCommandBufferBeginInfo info = {};
         info.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;

@@ -4,6 +4,15 @@
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Myu">
+      <UniqueIdentifier>{17972FA9-8376-AE44-8C8E-391BF8EC14A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Myu\Core">
+      <UniqueIdentifier>{CFC1A532-BB24-35D7-64AA-6D8D50EC005A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Myu\VulkanWrapper">
+      <UniqueIdentifier>{58EB901B-C457-4C16-8D4B-E473F9766E7E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
     </Filter>
@@ -18,76 +27,88 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Application.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\Application.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Camera.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\Camera.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\KeyboardListener.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\KeyboardListener.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Utils.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\RenderObject.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vulkan.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\Utils.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\VulkanDevice.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Core\Window.hpp">
+      <Filter>src\Myu\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\VulkanModel.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\Myu.hpp">
+      <Filter>src\Myu</Filter>
     </ClInclude>
-    <ClInclude Include="src\VulkanPipeline.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\VulkanWrapper\Vulkan.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClInclude>
-    <ClInclude Include="src\VulkanRenderer.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanCamera.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClInclude>
-    <ClInclude Include="src\VulkanSwapchain.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanDevice.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClInclude>
-    <ClInclude Include="src\Window.hpp">
-      <Filter>src</Filter>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanModel.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanPipeline.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanRenderer.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Myu\VulkanWrapper\VulkanSwapchain.hpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\Application.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\Camera.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\KeyboardListener.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\KeyboardListener.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Utils.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\RenderObject.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Vulkan.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\Utils.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\VulkanDevice.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\Core\Window.cpp">
+      <Filter>src\Myu\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\VulkanModel.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\Vulkan.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
-    <ClCompile Include="src\VulkanPipeline.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanCamera.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
-    <ClCompile Include="src\VulkanRenderer.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanDevice.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
-    <ClCompile Include="src\VulkanSwapchain.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanModel.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanPipeline.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
-    <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanRenderer.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Myu\VulkanWrapper\VulkanSwapchain.cpp">
+      <Filter>src\Myu\VulkanWrapper</Filter>
     </ClCompile>
     <ClCompile Include="vendor\Windows\imgui\backends\imgui_impl_glfw.cpp">
       <Filter>vendor\Windows\imgui\backends</Filter>

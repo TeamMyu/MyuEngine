@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Vulkan.hpp"
-#include "VulkanDevice.hpp"
-#include "VulkanPipeline.hpp"
-#include "VulkanSwapchain.hpp"
-#include "VulkanRenderer.hpp"
-#include "VulkanModel.hpp"
+#include "../VulkanWrapper/Vulkan.hpp"
+#include "../VulkanWrapper/VulkanDevice.hpp"
+#include "../VulkanWrapper/VulkanPipeline.hpp"
+#include "../VulkanWrapper/VulkanSwapchain.hpp"
+#include "../VulkanWrapper/VulkanRenderer.hpp"
+#include "../VulkanWrapper/VulkanModel.hpp"
 #include "Window.hpp"
 
 #include <vector>
@@ -31,7 +31,7 @@ public:
     Window          m_Window{WIDTH, HEIGHT, "Test"};
     VulkanDevice    m_Device{m_Window.GetGLFWWindow()};
     VulkanSwapchain m_Swapchain{m_Device, m_Window.GetVkExtent2D()};
-    VulkanRenderer  m_Renderer{m_Device, m_Window};
+    VulkanRenderer  m_Renderer{m_Device};
 
     VkImage        textureImage;
     VkDeviceMemory textureImageMemory;

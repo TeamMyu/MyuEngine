@@ -2,9 +2,8 @@
 
 namespace VulkanWrapper
 {
-    VulkanRenderer::VulkanRenderer(VulkanDevice& vulkanDevice, MyuEngine::Window& window)
+    VulkanRenderer::VulkanRenderer(VulkanDevice& vulkanDevice)
         : m_rVulkanDevice{vulkanDevice}
-        , m_rWindow{window}
     {
     }
     void VulkanRenderer::BeginDraw()

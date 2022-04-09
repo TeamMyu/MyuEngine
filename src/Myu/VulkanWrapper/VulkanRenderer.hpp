@@ -2,14 +2,13 @@
 
 #include "VulkanDevice.hpp"
 #include "VulkanSwapchain.hpp"
-#include "Window.hpp"
 
 namespace VulkanWrapper
 {
     class VulkanRenderer
     {
     public:
-        VulkanRenderer(VulkanDevice& vulkanDevice, MyuEngine::Window& window);
+        VulkanRenderer(VulkanDevice& vulkanDevice);
 
         void BeginDraw();
         void EndDraw();
@@ -19,7 +18,6 @@ namespace VulkanWrapper
     private:
         // Class Ref
         VulkanDevice& m_rVulkanDevice;
-        MyuEngine::Window& m_rWindow;
         // ---
         
     };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application.hpp"
+#include "Core/Application.hpp"
 
 #define MYUAPI __declspec(dllexport)
 
