@@ -16,8 +16,8 @@ std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 std::vector<VkDescriptorSet> descriptorSets;
 
-const std::string MODEL_PATH = "C:/Users/mingi/Documents/MyuEngine/src/models/viking_room.obj";
-const std::string TEXTURE_PATH = "C:/Users/mingi/Documents/MyuEngine/src/textures/viking_room.png";
+const std::string MODEL_PATH = "models/viking_room.obj";
+const std::string TEXTURE_PATH = "textures/viking_room.png";
 
 VulkanModel *m_Model;
 
@@ -27,8 +27,8 @@ Application::Application()
     createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(PushConstantObject));
 
     VulkanPipelineSpecification pipelineSpec;
-    pipelineSpec.vertFilepath = "C:/Users/mingi/Documents/MyuEngine/src/shaders/vert.spv";
-    pipelineSpec.fragFilepath = "C:/Users/mingi/Documents/MyuEngine/src/shaders/frag.spv";
+    pipelineSpec.vertFilepath = "shaders/vert.spv";
+    pipelineSpec.fragFilepath = "shaders/frag.spv";
     pipelineSpec.pipelineLayout = pipelineLayout;
 
     m_pPipeline = new VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
@@ -100,8 +100,8 @@ void Application::recreateSwapChain()
     createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(PushConstantObject));
 
     VulkanPipelineSpecification pipelineSpec;
-    pipelineSpec.vertFilepath   = "C:/Users/mingi/Documents/MyuEngine/src/shaders/vert.spv";
-    pipelineSpec.fragFilepath   = "C:/Users/mingi/Documents/MyuEngine/src/shaders/frag.spv";
+    pipelineSpec.vertFilepath   = "shaders/vert.spv";
+    pipelineSpec.fragFilepath   = "shaders/frag.spv";
     pipelineSpec.pipelineLayout = pipelineLayout;
 
     m_pPipeline = new VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
