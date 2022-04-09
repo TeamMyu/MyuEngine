@@ -7,11 +7,11 @@ namespace VulkanWrapper
     class VulkanModel
     {
     public:
-        VulkanModel(VulkanDevice& vulkanDevice, const std::string MODEL_PATH);
+        VulkanModel(VulkanDevice& vulkanDevice, const std::string& MODEL_PATH);
         ~VulkanModel();
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
-        void loadModel(const std::string MODEL_PATH, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
+        void loadModel(const std::string& MODEL_PATH, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 
     private:
         VulkanDevice& m_rVulkanDevice;

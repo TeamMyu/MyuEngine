@@ -9,9 +9,13 @@ project "Myu"
    targetdir "bin/Myu/%{cfg.buildcfg}"
    objdir "bin-int/Myu/%{cfg.buildcfg}"
 
-   files { "src/**.hpp", "src/**.cpp",    
+   files { "src/Myu/**.hpp", 
+   "src/Myu/**.cpp", 
+   "src/Myu/**.h", 
+   "src/Myu/**.c",
    "vendor/Windows/imgui/*.cpp",
-   "vendor/Windows/imgui/backends/*.cpp" }
+   "vendor/Windows/imgui/backends/*.cpp"
+    }
 
    VulkanSDK_PATH = os.getenv("VULKAN_SDK")
    OSX_Vulkan_PATH = (VulkanSDK_PATH .. "/1.3.204.0") -- this variable only use for macOS
@@ -51,6 +55,8 @@ project "Myu"
           "vendor/Windows/GLFW/include",
           "vendor/Windows/stb_image",
           "vendor/Windows/tinyobjloader",
+          "vendor/Windows/imgui",
+          "vendor/Windows/imgui/backends",
           VulkanSDK_PATH.."/Include"
       }
       libdirs
@@ -71,3 +77,49 @@ project "Myu"
    filter "configurations:Release"
       defines { "NDEBUG" }
       optimize "On"
+
+
+project "Editor"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++17"
+    targetdir "bin/Editor/%{cfg.buildcfg}"
+    objdir "bin-int/Editor/%{cfg.buildcfg}"
+
+    files { "src/Editor/**.hpp", "src/Editor/**.cpp" }
+
+    VulkanSDK_PATH = os.getenv("VULKAN_SDK")
+    OSX_Vulkan_PATH = (VulkanSDK_PATH .. "/1.3.204.0") -- this variable only use for macOS
+
+    filter "system:windows"
+        architecture "x64"
+        includedirs
+        {
+            "vendor/Windows/glm",
+            "vendor/Windows/GLFW/include",
+            "vendor/Windows/stb_image",
+            "vendor/Windows/tinyobjloader",
+            "vendor/Windows/imgui",
+            "vendor/Windows/imgui/backends",
+            VulkanSDK_PATH.."/Include"
+        }
+        libdirs
+        {
+            "bin/Myu/Debug",
+            "vendor/Windows/GLFW/lib",
+            VulkanSDK_PATH.."/Lib"
+        }
+        links
+        {
+            "Myu.lib",
+            "glfw3.lib",
+            "vulkan-1.lib",
+        }
+
+    filter "configurations:Debug"
+        defines { "DEBUG" }
+        symbols "On"
+
+    filter "configurations:Release"
+        defines { "NDEBUG" }
+        optimize "On"

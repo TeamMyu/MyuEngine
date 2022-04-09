@@ -1,4 +1,6 @@
 .vscode
+# setting files
+*.ini
 
 # xcode project files
 *.xcodeproj

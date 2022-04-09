@@ -5,7 +5,7 @@
 
 namespace VulkanWrapper
 {
-    VulkanModel::VulkanModel(VulkanDevice& vulkanDevice, const std::string MODEL_PATH)
+    VulkanModel::VulkanModel(VulkanDevice &vulkanDevice, const std::string& MODEL_PATH)
         : m_rVulkanDevice{vulkanDevice}
     {
         loadModel(MODEL_PATH, vertices, indices);
@@ -36,7 +36,7 @@ namespace VulkanWrapper
     {
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
-    void VulkanModel::loadModel(const std::string MODEL_PATH, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
+    void VulkanModel::loadModel(const std::string& MODEL_PATH, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
     {
         tinyobj::attrib_t                attrib;
         std::vector<tinyobj::shape_t>    shapes;
