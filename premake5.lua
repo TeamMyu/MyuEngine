@@ -14,6 +14,15 @@ project "Myu"
    VulkanSDK_PATH = os.getenv("VULKAN_SDK")
    OSX_Vulkan_PATH = (VulkanSDK_PATH .. "/1.3.204.0") -- this variable only use for macOS
 
+   postbuildcommands
+   {
+       "glslc %{prj.location}/src/shaders/shader.vert -o %{prj.location}/src/shaders/vert.spv",
+       "glslc %{prj.location}/src/shaders/shader.frag -o %{prj.location}/src/shaders/frag.spv",
+       "{COPYDIR} %{prj.location}/src/shaders %{prj.location}/bin/%{cfg.buildcfg}",
+       "{COPYDIR} %{prj.location}/resources/textures %{prj.location}/bin/%{cfg.buildcfg}",
+       "{COPYDIR} %{prj.location}/resources/models %{prj.location}/bin/%{cfg.buildcfg}"
+   }
+
    filter "system:macosx"
       sysincludedirs
       {
