@@ -11,6 +11,7 @@
 *.vcxproj
 *.vcxproj.user
 *.sln
+*.vcxproj.filters
 
 # output files
 bin/
