@@ -3,24 +3,26 @@ workspace "MyuEngine"
    configurations { "Debug", "Release" }
 
 project "Myu"
-   kind "ConsoleApp"
+   kind "StaticLib"
    language "C++"
    cppdialect "C++17"
-   targetdir "bin/%{cfg.buildcfg}"
-   objdir "bin-int/%{cfg.buildcfg}"
+   targetdir "bin/Myu/%{cfg.buildcfg}"
+   objdir "bin-int/Myu/%{cfg.buildcfg}"
 
-   files { "src/**.hpp", "src/**.cpp" }
+   files { "src/**.hpp", "src/**.cpp",    
+   "vendor/Windows/imgui/*.cpp",
+   "vendor/Windows/imgui/backends/*.cpp" }
 
    VulkanSDK_PATH = os.getenv("VULKAN_SDK")
    OSX_Vulkan_PATH = (VulkanSDK_PATH .. "/1.3.204.0") -- this variable only use for macOS
 
    postbuildcommands
    {
-       "glslc %{prj.location}/src/shaders/shader.vert -o %{prj.location}/src/shaders/vert.spv",
-       "glslc %{prj.location}/src/shaders/shader.frag -o %{prj.location}/src/shaders/frag.spv",
-       "{COPYDIR} %{prj.location}/src/shaders %{prj.location}/bin/%{cfg.buildcfg}",
-       "{COPYDIR} %{prj.location}/resources/textures %{prj.location}/bin/%{cfg.buildcfg}",
-       "{COPYDIR} %{prj.location}/resources/models %{prj.location}/bin/%{cfg.buildcfg}"
+       "glslc %{prj.location}/src/shaders/shader.vert -o %{prj.location}/resources/shaders/vert.spv",
+       "glslc %{prj.location}/src/shaders/shader.frag -o %{prj.location}/resources/shaders/frag.spv"
+       -- "{COPYDIR} %{prj.location}/src/shaders %{prj.location}/bin/%{cfg.buildcfg}",
+       -- "{COPYDIR} %{prj.location}/resources/textures %{prj.location}/bin/%{cfg.buildcfg}",
+       -- "{COPYDIR} %{prj.location}/resources/models %{prj.location}/bin/%{cfg.buildcfg}"
    }
 
    filter "system:macosx"

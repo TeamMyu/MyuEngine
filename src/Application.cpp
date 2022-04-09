@@ -17,8 +17,8 @@ std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 std::vector<VkDescriptorSet> descriptorSets;
 
-const std::string MODEL_PATH = "models/viking_room.obj";
-const std::string TEXTURE_PATH = "textures/viking_room.png";
+const std::string MODEL_PATH   = "resources/models/viking_room.obj";
+const std::string TEXTURE_PATH = "resources/textures/viking_room.png";
 
 VulkanModel *m_Model;
 
@@ -28,8 +28,8 @@ Application::Application()
     createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(PushConstantObject));
 
     VulkanPipelineSpecification pipelineSpec;
-    pipelineSpec.vertFilepath = "shaders/vert.spv";
-    pipelineSpec.fragFilepath = "shaders/frag.spv";
+    pipelineSpec.vertFilepath = "resources/shaders/vert.spv";
+    pipelineSpec.fragFilepath = "resources/shaders/frag.spv";
     pipelineSpec.pipelineLayout = pipelineLayout;
 
     m_pPipeline = new VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
