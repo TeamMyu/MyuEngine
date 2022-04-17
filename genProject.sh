@@ -1,1 +1,1 @@
-vendor/macOS/bin/premake/premake5 xcode4
+premake/premake5 xcode4
