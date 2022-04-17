@@ -1,14 +1,13 @@
 #pragma once
 
-#include "VulkanDevice.hpp"
-#include "VulkanSwapchain.hpp"
+#include "../VulkanWrapper/VulkanDevice.hpp"
 
-namespace VulkanWrapper
+namespace Myu
 {
-    class VulkanRenderer
+    class Renderer
     {
     public:
-        VulkanRenderer(VulkanDevice& vulkanDevice);
+        Renderer(VulkanWrapper::VulkanDevice& vulkanDevice);
 
         void BeginDraw();
         void EndDraw();
@@ -17,8 +16,8 @@ namespace VulkanWrapper
 
     private:
         // Class Ref
-        VulkanDevice& m_rVulkanDevice;
+        VulkanWrapper::VulkanDevice& m_rVulkanDevice;
         // ---
         
     };
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper

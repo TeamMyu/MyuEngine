@@ -1,20 +1,28 @@
-#include "VulkanModel.hpp"
+#include "Model.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
-namespace VulkanWrapper
+namespace Myu
 {
-    VulkanModel::VulkanModel(VulkanDevice &vulkanDevice, const std::string& MODEL_PATH)
+    Model::Model(VulkanWrapper::VulkanDevice &vulkanDevice, const std::string& MODEL_PATH)
         : m_rVulkanDevice{vulkanDevice}
     {
-        loadModel(MODEL_PATH, vertices, indices);
+        loadModelFromPath(MODEL_PATH, vertices, indices);
 
-        createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
-        createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        VulkanWrapper::createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        VulkanWrapper::createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
     }
 
-    VulkanModel::~VulkanModel()
+    Model::Model(VulkanWrapper::VulkanDevice& vulkanDevice, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)
+        : m_rVulkanDevice{vulkanDevice}
+    {
+        VulkanWrapper::createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        
+        VulkanWrapper::createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+    }
+
+    Model::~Model()
     {
         vkDestroyBuffer(m_rVulkanDevice.GetVkLogicalDevice(), indexBuffer, nullptr);
         vkFreeMemory(m_rVulkanDevice.GetVkLogicalDevice(), indexBufferMemory, nullptr);
@@ -23,20 +31,21 @@ namespace VulkanWrapper
         vkFreeMemory(m_rVulkanDevice.GetVkLogicalDevice(), vertexBufferMemory, nullptr);
     }
 
-    void VulkanModel::bind(VkCommandBuffer commandBuffer)
+    void Model::bind(VkCommandBuffer commandBuffer)
     {
-        VkBuffer     vertexBuffers[] = {vertexBuffer};
-        VkDeviceSize offsets[]       = {0};
+        VkBuffer vertexBuffers[] = {vertexBuffer};
+        VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
     }
 
-    void VulkanModel::draw(VkCommandBuffer commandBuffer)
+    void Model::draw(VkCommandBuffer commandBuffer)
     {
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
-    void VulkanModel::loadModel(const std::string& MODEL_PATH, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices)
+
+    void Model::loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)
     {
         tinyobj::attrib_t                attrib;
         std::vector<tinyobj::shape_t>    shapes;
@@ -51,12 +60,12 @@ namespace VulkanWrapper
         vertices.clear();
         indices.clear();
 
-        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+        std::unordered_map<VulkanWrapper::Vertex, uint32_t> uniqueVertices{};
         for (const auto &shape : shapes)
         {
             for (const auto &index : shape.mesh.indices)
             {
-                Vertex vertex{};
+                VulkanWrapper::Vertex vertex{};
 
                 if (index.vertex_index >= 0)
                 {
@@ -99,4 +108,4 @@ namespace VulkanWrapper
             }
         }
     }
-}  // namespace VulkanWrapper
+}
