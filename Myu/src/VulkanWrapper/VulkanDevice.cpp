@@ -1,7 +1,7 @@
 
 #include "VulkanDevice.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     VulkanDevice::VulkanDevice(GLFWwindow* window)
         : m_rWindow{window}
@@ -233,12 +233,14 @@ namespace VulkanWrapper
         poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         poolSizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
+        
+        // FIXME: maxsets are temp size
+        // FIXME: must be changed gameObjects size
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes    = poolSizes.data();
-        poolInfo.maxSets       = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        poolInfo.maxSets       = 1000;
 
         if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
         {

@@ -3,7 +3,7 @@
 #include "VulkanDevice.hpp"
 #include "VulkanSwapchain.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     struct VulkanPipelineSpecification
     {
@@ -51,4 +51,4 @@ namespace VulkanWrapper
         // ---
         VkPipeline m_VkPipeline;
     };
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper

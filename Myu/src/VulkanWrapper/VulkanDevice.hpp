@@ -2,7 +2,7 @@
 
 #include "Vulkan.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
 #ifdef NDEBUG
     const bool enableValidationLayers = true;

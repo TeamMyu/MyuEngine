@@ -2,7 +2,7 @@
 #include "VulkanPipeline.hpp"
 #include "Utils.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
 	VkShaderModule VulkanPipeline::createShaderModule(const VkDevice& device, const std::vector<char>& code)
 	{
@@ -108,8 +108,6 @@ namespace VulkanWrapper
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VkPipeline);
 	}
 
-
-
 	VulkanPipelineSpecification::VulkanPipelineSpecification()
 	{
 		inputAssemblyInfo.sType =
@@ -195,4 +193,4 @@ namespace VulkanWrapper
 			static_cast<uint32_t>(this->dynamicStateEnables.size());
 		this->dynamicStateInfo.flags = 0;
 	}
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper

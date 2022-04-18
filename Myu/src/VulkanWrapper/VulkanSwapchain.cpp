@@ -2,7 +2,7 @@
 #include "VulkanSwapchain.hpp"
 //#include "VulkanDevice.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     VulkanSwapchain::VulkanSwapchain(VulkanDevice& vulkanDevice, VkExtent2D extent)
         : m_rVulkanDevice{vulkanDevice}
@@ -463,4 +463,4 @@ namespace VulkanWrapper
 
         return vkQueuePresentKHR(m_rVulkanDevice.GetVkPresentQueue(), &presentInfo);
     }
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper

@@ -1,6 +1,6 @@
 #include "Window.hpp"
 
-namespace MyuEngine
+namespace Myu
 {
     Window::Window(uint32_t Width, uint32_t Height, std::string Title)
         : m_Width{Width}

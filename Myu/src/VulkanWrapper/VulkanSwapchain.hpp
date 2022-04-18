@@ -2,7 +2,7 @@
 
 #include "VulkanDevice.hpp"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     class VulkanSwapchain
     {
@@ -78,4 +78,4 @@ namespace VulkanWrapper
         VkPresentModeKHR   chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D         chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
     };
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper
