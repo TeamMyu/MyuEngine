@@ -38,6 +38,7 @@ project "Editor"
             (OSX_Vulkan_PATH .. "/macOS/lib/libvulkan.1.dylib"),
             (OSX_Vulkan_PATH .. "/macOS/lib/libvulkan.1.3.204.dylib")
         }
+        buildoptions { "-fdeclspec" }
 
     filter "system:windows"
         architecture "x64"
