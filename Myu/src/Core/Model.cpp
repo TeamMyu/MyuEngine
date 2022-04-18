@@ -8,10 +8,14 @@ namespace Myu
     Model::Model(VulkanWrapper::VulkanDevice &vulkanDevice, const std::string& MODEL_PATH)
         : m_rVulkanDevice{vulkanDevice}
     {
-        loadModelFromPath(MODEL_PATH, vertices, indices);
-
-        VulkanWrapper::createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
-        VulkanWrapper::createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        loadModelFromPath(MODEL_PATH, m_vertices, m_indices);
+        
+        // FIXME: Duplicated code
+        VulkanWrapper::createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), m_vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        VulkanWrapper::createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), m_indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        
+        // FIXME: Duplicated code
+        VulkanWrapper::createUniformBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), m_uniformBuffer, m_uniformBufferMemory);
     }
 
     Model::Model(VulkanWrapper::VulkanDevice& vulkanDevice, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)
@@ -20,6 +24,8 @@ namespace Myu
         VulkanWrapper::createVertexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), vertices, &vertexBuffer, &vertexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
         
         VulkanWrapper::createIndexBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), indices, &indexBuffer, indexBufferMemory, vulkanDevice.GetVkGraphicsQueue(), vulkanDevice.GetVkCommandPool());
+        
+        VulkanWrapper::createUniformBuffer(vulkanDevice.GetVkPhysicalDevice(), vulkanDevice.GetVkLogicalDevice(), m_uniformBuffer, m_uniformBufferMemory);
     }
 
     Model::~Model()
@@ -42,7 +48,7 @@ namespace Myu
 
     void Model::draw(VkCommandBuffer commandBuffer)
     {
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(m_indices.size()), 1, 0, 0, 0);
     }
 
     void Model::loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)

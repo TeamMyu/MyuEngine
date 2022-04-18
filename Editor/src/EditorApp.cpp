@@ -1,11 +1,9 @@
 
 #include "Myu.hpp"
-#include <iostream>
 
 
 int main()
 {
-    Application* app = CreateApplication();
-
+    Myu::Application* app = CreateApplication();
     app->run();
 }

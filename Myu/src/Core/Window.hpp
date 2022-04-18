@@ -2,7 +2,7 @@
 
 #include "../VulkanWrapper/Vulkan.hpp"
 
-namespace MyuEngine
+namespace Myu
 {
     class Window
     {

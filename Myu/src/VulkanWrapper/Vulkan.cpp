@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {
@@ -105,6 +105,35 @@ namespace VulkanWrapper
             */
             vkUpdateDescriptorSets(device, 1, &descriptorWrites[0], 0, nullptr);
         }
+    }
+
+    void createUniformDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptorSet,  VkBuffer &uniformBuffer)
+    {
+        VkDescriptorSetAllocateInfo        allocInfo{};
+        allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool     = descriptorPool;
+        allocInfo.descriptorSetCount = 1;
+        allocInfo.pSetLayouts        = &descriptorSetLayout;
+
+        if (vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+        
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = uniformBuffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range  = sizeof(UniformBufferObject);
+        
+        VkWriteDescriptorSet descriptorWrite {};
+        descriptorWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet          = descriptorSet;
+        descriptorWrite.dstBinding      = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo     = &bufferInfo;
+        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
 
     void createBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory)
@@ -214,20 +243,10 @@ namespace VulkanWrapper
         vkFreeMemory(device, stagingBufferMemory, nullptr);
     }
 
-    void createUniformBuffers(VkPhysicalDevice             physicalDevice,
-                              VkDevice                     device,
-                              std::vector<VkBuffer> &      uniformBuffers,
-                              std::vector<VkDeviceMemory> &uniformBuffersMemory)
+    void createUniformBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkBuffer &buffer, VkDeviceMemory &memory)
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-        }
+        createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer, memory);
     }
 
     void copyBuffer(VkDevice      device,
@@ -246,66 +265,41 @@ namespace VulkanWrapper
         endSingleTimeCommands(device, commandBuffer, queue, commandPool);
     }
 
-    void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout *descriptorSetLayout)
+    VkDescriptorSetLayoutBinding createDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlagBits stageFlags, uint32_t count)
     {
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding            = 0;
-        uboLayoutBinding.descriptorCount    = 1;
-        uboLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
-        uboLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
+        VkDescriptorSetLayoutBinding info{};
+        info.binding = binding;
+        info.descriptorType = type;
+        info.stageFlags = stageFlags;
+        info.descriptorCount = count;
+        info.pImmutableSamplers = nullptr;
+        
+        return info;
+    }
 
-        /*
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding            = 1;
-        samplerLayoutBinding.descriptorCount    = 1;
-        samplerLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+    void createDescriptorSetLayout(VkDevice device, std::vector<VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayout *descriptorSetLayout)
+    {        
         VkDescriptorSetLayoutCreateInfo             layoutInfo{};
         layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings    = bindings.data();
-        */
-        VkDescriptorSetLayoutCreateInfo             layoutInfo{};
-        layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings    = &uboLayoutBinding;
-
         if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, descriptorSetLayout) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
     }
 
-    void updateUniformBuffer(VkDevice device, uint32_t currentImage, VkExtent2D swapChainExtent, std::vector<VkDeviceMemory> &uniformBuffersMemory,
-                             glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
+    void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
     {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto  currentTime = std::chrono::high_resolution_clock::now();
-        float time        = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
         UniformBufferObject ubo{};
         ubo.model = modelMat;
         ubo.view = viewMat;
         ubo.proj = projMat;
-        
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-//        ubo.view =
-//            glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-//        ubo.proj = glm::perspective(glm::radians(45.0f),
-//                                    swapChainExtent.width / (float)swapChainExtent.height,
-//                                    0.1f,
-//                                    10.0f);
-//        ubo.proj[1][1] *= -1;
 
         void *data;
-        vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+        vkMapMemory(device, uniformBuffersMemory, 0, sizeof(ubo), 0, &data);
         memcpy(data, &ubo, sizeof(ubo));
-        vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
+        vkUnmapMemory(device, uniformBuffersMemory);
     }
 
     VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool commandPool)
@@ -359,6 +353,18 @@ namespace VulkanWrapper
                                 0,
                                 1,
                                 &descriptorSets[currentFrame],
+                                0,
+                                nullptr);
+    }
+
+    void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet)
+    {
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                pipelineLayout,
+                                0,
+                                1,
+                                &descriptorSet,
                                 0,
                                 nullptr);
     }
@@ -646,4 +652,4 @@ namespace VulkanWrapper
 
         endSingleTimeCommands(device, commandBuffer, queue, commandPool);
     }
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper

@@ -8,7 +8,7 @@
     #define MYU_API __declspec(dllimport)
 #endif
 
-MYU_API Application* CreateApplication()
+MYU_API Myu::Application* CreateApplication()
 {
-    return new Application();
+    return new Myu::Application();
 };

@@ -35,7 +35,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace VulkanWrapper
+namespace Myu::VulkanWrapper
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -96,8 +96,6 @@ namespace VulkanWrapper
     // clang-format off
     uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    void loadModel(const std::string MODEL_PATH, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-
     void createPipelineLayout(VkDevice device, VkDescriptorSetLayout* descriptorSetLayout, VkPipelineLayout* pipelineLayout,  int pushConstantSize);
     void createPipelineLayout(VkDevice device, VkDescriptorSetLayout* descriptorSetLayout, VkPipelineLayout* pipelineLayout);
 
@@ -106,22 +104,24 @@ namespace VulkanWrapper
     void createBuffer        (VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void createVertexBuffer  (VkPhysicalDevice physicalDevice, VkDevice device, std::vector<Vertex>& vertices, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkQueue queue, VkCommandPool commandPool);
     void createIndexBuffer   (VkPhysicalDevice physicalDevice, VkDevice device, std::vector<uint32_t>& indices, VkBuffer* indexBuffer, VkDeviceMemory indexBufferMemory, VkQueue queue, VkCommandPool commandPool);
-    void createUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice device, std::vector<VkBuffer>& uniformBuffers, std::vector<VkDeviceMemory>& uniformBuffersMemory);
+    void createUniformBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkBuffer &buffer, VkDeviceMemory &memory);
 
     void copyBufferToImage (VkDevice device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
     void copyBuffer        (VkDevice device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkQueue queue, VkCommandPool commandPool);
 
-    void updateUniformBuffer(VkDevice device, uint32_t currentImage, VkExtent2D swapChainExtent, std::vector<VkDeviceMemory> &uniformBuffersMemory,glm::mat4 modelMat,
-                             glm::mat4 viewMat, glm::mat4 projMat);
+    void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat);
 
-    void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout* descriptorSetLayout);
+    void createDescriptorSetLayout(VkDevice device, std::vector<VkDescriptorSetLayoutBinding> bindings, VkDescriptorSetLayout *descriptorSetLayout);
 
     VkCommandBuffer beginSingleTimeCommands (VkDevice device, VkCommandPool commandPool);
     void            endSingleTimeCommands   (VkDevice device, VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkCommandPool commandPool);
 
     void bindPushConstant(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout,const void* pushConstant);
     void bindModelBuffer(VkCommandBuffer commandBuffer, VkBuffer vertexBuffer, VkBuffer indexBuffer);
+
     void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::vector<VkDescriptorSet> &descriptorSets, int currentFrame);
+
+    void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet);
 
     void drawIndexedModel(VkCommandBuffer commandBuffer, std::vector<uint32_t> indices);
 
@@ -137,15 +137,20 @@ namespace VulkanWrapper
     void createTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device, VkSampler& textureSampler);
 
     void transitionImageLayout(VkDevice device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkQueue queue, VkCommandPool commandPool);
+
+    VkDescriptorSetLayoutBinding createDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlagBits stageFlags, uint32_t count);
+
+    void createUniformDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptorSet,  VkBuffer &uniformBuffer);
+
     // clang-format on
-}  // namespace VulkanWrapper
+}  // namespace Myu::VulkanWrapper
 
 namespace std
 {
     template <>
-    struct hash<VulkanWrapper::Vertex>
+    struct hash<Myu::VulkanWrapper::Vertex>
     {
-        size_t operator()(VulkanWrapper::Vertex const& vertex) const
+        size_t operator()(Myu::VulkanWrapper::Vertex const& vertex) const
         {
             return ((hash<glm::vec3>()(vertex.position) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
                    (hash<glm::vec2>()(vertex.uv) << 1);
