@@ -15,7 +15,7 @@
 
 namespace Myu
 {
-    class MYU_API Application
+    MYU_API class Application
     {
     public:
         Application();
