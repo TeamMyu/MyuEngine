@@ -9,12 +9,13 @@
 #include "Model.hpp"
 #include "GameObject.hpp"
 #include "Renderer.hpp"
+#include "Core.hpp"
 
 #include <vector>
 
 namespace Myu
 {
-    class Application
+    class MYU_API Application
     {
     public:
         Application();
@@ -46,6 +47,8 @@ namespace Myu
         void initEditor();
         void drawEditor();
         void drawFrame();
+
+        static Application* CreateApplication();
 
     private:
 

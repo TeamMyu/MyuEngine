@@ -11,9 +11,7 @@ project "Editor"
     {
       "{MKDIR} %{cfg.targetdir}/shaders",
       "glslc %{wks.location}/Myu/src/shaders/shader.vert -o %{cfg.targetdir}/shaders/vert.spv",
-      "glslc %{wks.location}/Myu/src/shaders/shader.frag -o %{cfg.targetdir}/shaders/frag.spv",
-      "{COPYDIR} %{wks.location}/Myu/resources/textures %{cfg.targetdir}",
-      "{COPYDIR} %{wks.location}/Myu/resources/models %{cfg.targetdir}"
+      "glslc %{wks.location}/Myu/src/shaders/shader.frag -o %{cfg.targetdir}/shaders/frag.spv"
     }
 
     filter "system:macosx"
@@ -39,6 +37,11 @@ project "Editor"
             (OSX_Vulkan_PATH .. "/macOS/lib/libvulkan.1.3.204.dylib")
         }
         buildoptions { "-fdeclspec" }
+		postbuildcommands
+		{
+			"{COPYDIR} %{wks.location}/Myu/resources/textures %{cfg.targetdir}",
+			"{COPYDIR} %{wks.location}/Myu/resources/models %{cfg.targetdir}"
+		}
 
     filter "system:windows"
         architecture "x64"
@@ -59,10 +62,14 @@ project "Editor"
         links
         {
             "Myu",
-            "Myu.lib",
             "glfw3.lib",
             "vulkan-1.lib",
         }
+		debugdir "%{cfg.targetdir}"
+		postbuildcommands
+		{
+			"{COPYDIR} %{wks.location}/Myu/resources %{cfg.targetdir}"
+		}
 
     filter "configurations:Debug"
         defines { "DEBUG" }

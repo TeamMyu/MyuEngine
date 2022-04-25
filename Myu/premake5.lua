@@ -12,6 +12,11 @@ project "Myu"
     }
 
     defines { "MYU_BUILD_DLL" }
+	
+	postbuildcommands
+    {
+	  "{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/Editor/%{cfg.buildcfg}"
+    }
 
    filter "system:macosx"
       sysincludedirs
