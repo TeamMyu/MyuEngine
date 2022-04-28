@@ -433,9 +433,4 @@ namespace Myu
             go.model->draw(commandBuffer);
         }
     }
-
-    Application* Application::CreateApplication()
-    {
-        return new Myu::Application();
-    }
 }

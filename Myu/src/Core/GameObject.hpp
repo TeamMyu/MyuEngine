@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "Model.hpp"
-#include "../VulkanWrapper/VulkanDevice.hpp"
 
 namespace Myu
 {
