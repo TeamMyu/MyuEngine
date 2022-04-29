@@ -15,6 +15,7 @@ project "Myu"
 	
 	postbuildcommands
     {
+    "{MKDIR} %{wks.location}/bin/Editor/%{cfg.buildcfg}",
 	  "{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/Editor/%{cfg.buildcfg}"
     }
 

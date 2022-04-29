@@ -48,7 +48,10 @@ namespace Myu
         void drawEditor();
         void drawFrame();
 
-        static Application* CreateApplication();
+        static Application* CreateApplication()
+        {
+            return new Myu::Application();
+        }
 
     private:
 
