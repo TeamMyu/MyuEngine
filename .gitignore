@@ -1,4 +1,6 @@
 .vscode
+# setting files
+*.ini
 
 # xcode project files
 *.xcodeproj
@@ -9,6 +11,7 @@
 *.vcxproj
 *.vcxproj.user
 *.sln
+*.vcxproj.filters
 
 # output files
 bin/
