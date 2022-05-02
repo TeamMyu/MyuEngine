@@ -1,6 +1,7 @@
 
 #include "VulkanPipeline.hpp"
 #include "../Core/Utils.hpp"
+#include "../Core/Debug.hpp"
 
 namespace Myu::VulkanWrapper
 {
@@ -58,13 +59,6 @@ namespace Myu::VulkanWrapper
 		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-#pragma endregion
-
-#pragma region pushConst_stage
-		//VkPushConstantRange pushConstantRange{};
-		//pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		//pushConstantRange.offset     = 0;
-		//pushConstantRange.size       = sizeof(int);
 #pragma endregion
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -192,5 +186,7 @@ namespace Myu::VulkanWrapper
 		this->dynamicStateInfo.dynamicStateCount =
 			static_cast<uint32_t>(this->dynamicStateEnables.size());
 		this->dynamicStateInfo.flags = 0;
+        
+        std::cout << "test" << std::endl;
 	}
 }  // namespace Myu::VulkanWrapper

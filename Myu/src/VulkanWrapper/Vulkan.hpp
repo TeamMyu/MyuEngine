@@ -35,6 +35,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "../Core/Utils.hpp"
+
 namespace Myu::VulkanWrapper
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -152,8 +154,11 @@ namespace std
     {
         size_t operator()(Myu::VulkanWrapper::Vertex const& vertex) const
         {
-            return ((hash<glm::vec3>()(vertex.position) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-                   (hash<glm::vec2>()(vertex.uv) << 1);
+//            return ((hash<glm::vec3>()(vertex.position) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+//                   (hash<glm::vec2>()(vertex.uv) << 1);
+            size_t seed = 0;
+            Utils::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+            return seed;
         }
     };
 }  // namespace std

@@ -374,11 +374,10 @@ namespace Myu::VulkanWrapper
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     }
 
-    void recordCommandBuffer(VkCommandBuffer               commandBuffer)
+    void recordCommandBuffer(VkCommandBuffer commandBuffer)
     {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to begin recording command buffer!");

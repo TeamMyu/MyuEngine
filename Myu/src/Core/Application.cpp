@@ -1,5 +1,9 @@
 #include "Application.hpp"
 #include "Camera.hpp"
+#include "KeyboardListener.hpp"
+
+#include <chrono>
+#include "Debug.hpp"
 
 VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout      pipelineLayout;
@@ -9,6 +13,9 @@ VkImage        textureImage;
 VkDeviceMemory textureImageMemory;
 VkImageView    textureImageView;
 VkSampler      textureSampler;
+std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+Myu::KeyboardListener keyboardListener {};
+Myu::Camera camera = Myu::Camera();
 
 const std::string TEXTURE_PATH = "textures/viking_room.png";
 
@@ -146,18 +153,19 @@ namespace Myu
         }
         {
             VkDescriptorPoolSize pool_sizes[] =
-                {
-                    {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-                    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-                    {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-                    {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+            {
+                {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+                {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+                {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+                {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+                {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
+            };
 
             VkDescriptorPoolCreateInfo pool_info = {};
             pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -199,95 +207,6 @@ namespace Myu
 
     void Application::drawEditor()
     {
-    }
-
-    Application::Application()
-    {
-        loadGameObjects();
-        
-        // creatae descriptor set layout
-        auto uniformBinding = VulkanWrapper::createDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 1);
-        std::vector<VkDescriptorSetLayoutBinding> bindings { uniformBinding };
-        VulkanWrapper::createDescriptorSetLayout(m_Device.GetVkLogicalDevice(), bindings, &descriptorSetLayout);
-        
-        // create descriptor set
-        for (auto& go : gameObjects)
-        {
-            VulkanWrapper::createUniformDescriptorSet(m_Device.GetVkLogicalDevice(), m_Device.GetVkDescriptorPool(), descriptorSetLayout, go.model->getDescriptorSet(), go.model->getUniformBuffer());
-        }
-        
-        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
-
-        VulkanWrapper::VulkanPipelineSpecification pipelineSpec;
-        pipelineSpec.vertFilepath   = "shaders/vert.spv";
-        pipelineSpec.fragFilepath   = "shaders/frag.spv";
-        pipelineSpec.pipelineLayout = pipelineLayout;
-        m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
-        
-        VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
-    }
-
-    Application::~Application()
-    {
-        vkDestroySampler(m_Device.GetVkLogicalDevice(), textureSampler, nullptr);
-        vkDestroyImageView(m_Device.GetVkLogicalDevice(), textureImageView, nullptr);
-
-        vkDestroyImage(m_Device.GetVkLogicalDevice(), textureImage, nullptr);
-        vkFreeMemory(m_Device.GetVkLogicalDevice(), textureImageMemory, nullptr);
-
-        vkDestroyDescriptorSetLayout(m_Device.GetVkLogicalDevice(), descriptorSetLayout, nullptr);
-
-        glfwTerminate();
-    }
-
-    void Application::run()
-    {
-        initEditor();
-        mainLoop();
-    }
-
-    void Application::mainLoop()
-    {
-        while (!glfwWindowShouldClose(m_Window.GetGLFWWindow()))
-        {
-            glfwPollEvents();
-            drawEditor();
-            drawFrame();
-        }
-
-        vkDeviceWaitIdle(m_Device.GetVkLogicalDevice());
-    }
-
-    void Application::recreateSwapChain()
-    {
-        auto extent = m_Window.GetVkExtent2D();
-        while (extent.width == 0 || extent.height == 0)
-        {
-            extent = m_Window.GetVkExtent2D();
-            glfwWaitEvents();
-        }
-
-        vkDeviceWaitIdle(m_Device.GetVkLogicalDevice());
-
-        VulkanWrapper::VulkanSwapchain m_Swapchain{m_Device, m_Window.GetVkExtent2D()};
-
-        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
-
-        VulkanWrapper::VulkanPipelineSpecification pipelineSpec;
-        pipelineSpec.vertFilepath   = "shaders/vert.spv";
-        pipelineSpec.fragFilepath   = "shaders/frag.spv";
-        pipelineSpec.pipelineLayout = pipelineLayout;
-
-        m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
-    }
-
-    void Application::drawFrame()
-    {
-        auto currentFrame  = m_Renderer.currentFrame;
-        auto currentBuffer = m_Renderer.GetCurrentBuffer();
-
-        glfwPollEvents();
-
         // Start the Dear ImGui frame
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -332,16 +251,108 @@ namespace Myu
 
         // Rendering
         ImGui::Render();
+    }
+
+    Application::Application()
+    {
+        loadGameObjects();
+        
+        // creatae descriptor set layout
+        auto uniformBinding = VulkanWrapper::createDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 1);
+        std::vector<VkDescriptorSetLayoutBinding> bindings { uniformBinding };
+        VulkanWrapper::createDescriptorSetLayout(m_Device.GetVkLogicalDevice(), bindings, &descriptorSetLayout);
+        
+        // create descriptor set
+        for (auto& go : gameObjects)
+        {
+            VulkanWrapper::createUniformDescriptorSet(m_Device.GetVkLogicalDevice(), m_Device.GetVkDescriptorPool(), descriptorSetLayout, go.model->getDescriptorSet(), go.model->getUniformBuffer());
+        }
+        
+        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
+
+        VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
+        pipelineSpec.vertFilepath   = "shaders/vert.spv";
+        pipelineSpec.fragFilepath   = "shaders/frag.spv";
+        pipelineSpec.pipelineLayout = pipelineLayout;
+        m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+        
+        VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
+        
+        startTime = std::chrono::high_resolution_clock::now();
+        
+        camera.setViewTarget(glm::vec3(0, 0, -2), glm::vec3(0, 0, 0));
+        float aspect = m_Swapchain.GetVkExtent2D().width / (float)m_Swapchain.GetVkExtent2D().height;
+        camera.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 10.f);
+    }
+
+    Application::~Application()
+    {
+        vkDestroySampler(m_Device.GetVkLogicalDevice(), textureSampler, nullptr);
+        vkDestroyImageView(m_Device.GetVkLogicalDevice(), textureImageView, nullptr);
+
+        vkDestroyImage(m_Device.GetVkLogicalDevice(), textureImage, nullptr);
+        vkFreeMemory(m_Device.GetVkLogicalDevice(), textureImageMemory, nullptr);
+
+        vkDestroyDescriptorSetLayout(m_Device.GetVkLogicalDevice(), descriptorSetLayout, nullptr);
+
+        glfwTerminate();
+    }
+
+    void Application::run()
+    {
+//        initEditor();
+        mainLoop();
+    }
+
+    void Application::mainLoop()
+    {
+        while (!glfwWindowShouldClose(m_Window.GetGLFWWindow()))
+        {
+            glfwPollEvents();
+//            drawEditor();
+            drawFrame();
+        }
+
+        vkDeviceWaitIdle(m_Device.GetVkLogicalDevice());
+    }
+
+    void Application::recreateSwapChain()
+    {
+        auto extent = m_Window.GetVkExtent2D();
+        while (extent.width == 0 || extent.height == 0)
+        {
+            extent = m_Window.GetVkExtent2D();
+            glfwWaitEvents();
+        }
+
+        vkDeviceWaitIdle(m_Device.GetVkLogicalDevice());
+
+        VulkanWrapper::VulkanSwapchain m_Swapchain{m_Device, m_Window.GetVkExtent2D()};
+
+        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
+
+        VulkanWrapper::VulkanPipelineSpecification pipelineSpec;
+        pipelineSpec.vertFilepath   = "shaders/vert.spv";
+        pipelineSpec.fragFilepath   = "shaders/frag.spv";
+        pipelineSpec.pipelineLayout = pipelineLayout;
+
+        m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+    }
+
+    void Application::drawFrame()
+    {
+        auto currentFrame  = m_Renderer.currentFrame;
+        auto currentBuffer = m_Renderer.GetCurrentBuffer();
+        
+        // calc delta time
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(startTime - currentTime).count();
+        startTime = currentTime;
 
         uint32_t imageIndex;
         VkResult result = m_Swapchain.AcquireNextImage(&imageIndex, currentFrame);
-
-        if (result == VK_ERROR_OUT_OF_DATE_KHR)
-        {
-            //recreateSwapChain();
-            return;
-        }
-        else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+        
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
         {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
@@ -350,47 +361,21 @@ namespace Myu
 
         m_Renderer.BeginDraw();
         m_Swapchain.BeginRenderPass(currentBuffer, imageIndex);
-
-        m_Swapchain.BindDynamicViewport(currentBuffer, {(1280 - 800) / 2, 0, 800, 600, 0, 0});
+        
+        // process keyboard event
+        for (auto& go : gameObjects)
+        {
+            keyboardListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
+        }
         
         renderGameObjects(currentBuffer);
 
         m_Swapchain.EndRenderPass(currentBuffer);
         VulkanWrapper::endCommandBuffer(currentBuffer);
 
-        {
-            VkCommandBufferBeginInfo info = {};
-            info.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            vkBeginCommandBuffer(m_ImGuiCommandBuffers[currentFrame], &info);
-
-            VkRenderPassBeginInfo renderPassInfo = {};
-            renderPassInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderPassInfo.renderPass            = m_ImGuiRenderPass;
-            renderPassInfo.framebuffer           = m_ImGuiFramebuffers[imageIndex];
-            renderPassInfo.renderArea.offset     = {0, 0};
-            renderPassInfo.renderArea.extent     = m_Swapchain.GetVkExtent2D();
-            VkClearValue clearColor              = {0.0f, 0.0f, 0.0f, 1.0f};
-            renderPassInfo.clearValueCount       = 1;
-            renderPassInfo.pClearValues          = &clearColor;
-            vkCmdBeginRenderPass(m_ImGuiCommandBuffers[currentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-            // Record dear imgui primitives into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffers[currentFrame]);
-
-            vkCmdEndRenderPass(m_ImGuiCommandBuffers[currentFrame]);
-            vkEndCommandBuffer(m_ImGuiCommandBuffers[currentFrame]);
-        }
-
-        std::vector bufs{currentBuffer, m_ImGuiCommandBuffers[currentFrame]};
+        std::vector bufs{currentBuffer};
         result = m_Swapchain.PresentQueue(bufs, &imageIndex, currentFrame);
-
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_Window.getWindowSizeResized())
-        {
-            m_Window.setWindowSizeResized();
-            //recreateSwapChain();
-        }
-        else if (result != VK_SUCCESS)
+        if (result != VK_SUCCESS)
         {
             throw std::runtime_error("failed to present swap chain image!");
         }
@@ -400,11 +385,11 @@ namespace Myu
 
     void Application::loadGameObjects()
     {
-        auto model = std::make_shared<Model>(m_Device, "models/smooth_vase.obj");
-        auto testGO = GameObject::createGameObject();
-        testGO.model = model;
-        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
-        gameObjects.push_back(std::move(testGO));
+//        auto model = std::make_shared<Model>(m_Device, "models/smooth_vase.obj");
+//        auto testGO = GameObject::createGameObject();
+//        testGO.model = model;
+//        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
+//        gameObjects.push_back(std::move(testGO));
         
         auto model2 = std::make_shared<Model>(m_Device, "models/smooth_vase.obj");
         auto testGO2 = GameObject::createGameObject();
@@ -417,15 +402,9 @@ namespace Myu
     {
         m_pPipeline->bind(commandBuffer);
         
-        Myu::Camera cam = Myu::Camera();
-        cam.setViewTarget(glm::vec3(0, 0, -2), glm::vec3(0, 0, 0));
-        float aspect = m_Swapchain.GetVkExtent2D().width / (float)m_Swapchain.GetVkExtent2D().height;
-        cam.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 10.f);
-//        cam.setOrthographicProjection(-1, 1, -1, 1, 0.1f, 10.0f);
-        
         for (auto& go : gameObjects)
         {
-            VulkanWrapper::updateUniformBuffer(m_Device.GetVkLogicalDevice(), m_Swapchain.GetVkExtent2D(), go.model->getUniformMemory(), go.transform.toMat4(), cam.getView(), cam.getProjection());
+            VulkanWrapper::updateUniformBuffer(m_Device.GetVkLogicalDevice(), m_Swapchain.GetVkExtent2D(), go.model->getUniformMemory(), go.transform.toMat4(), camera.getView(), camera.getProjection());
             VulkanWrapper::bindDescriptorSet(commandBuffer, pipelineLayout, go.model->getDescriptorSet());
             
             go.model->bind(commandBuffer);
