@@ -26,13 +26,12 @@ namespace Myu::VulkanWrapper
 
         VkResult                   AcquireNextImage(uint32_t* imageIndex, uint32_t currentFrame);
 
-        VkResult PresentQueue(std::vector<VkCommandBuffer>& currentBuffer, uint32_t* imageIndex, uint32_t currentFrame);
+        VkResult PresentQueue(std::vector<VkCommandBuffer>& currentBuffer, uint32_t imageIndex, uint32_t currentFrame);
 
         void BeginRenderPass(VkCommandBuffer commandBuffer, uint32_t imageIndex);
         void EndRenderPass(VkCommandBuffer commandBuffer);
-        void BindDynamicViewport(VkCommandBuffer commandBuffer, VkViewport viewport);
 
-            bool compareSwapFormats(const VulkanSwapchain& swapChain) const
+        bool compareSwapFormats(const VulkanSwapchain& swapChain) const
         {
             return swapChain.m_SwapChainImageFormat == m_SwapChainImageFormat;
         }
@@ -52,8 +51,6 @@ namespace Myu::VulkanWrapper
         VkImage        m_DepthImage;
         VkDeviceMemory m_DepthImageMemory;
         VkImageView    m_DepthImageView;
-
-        std::shared_ptr<VulkanSwapchain> m_OldSwapChain;
 
         std::vector<VkSemaphore> imageAvailableSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;

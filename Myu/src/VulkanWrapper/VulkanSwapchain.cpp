@@ -9,7 +9,6 @@ namespace Myu::VulkanWrapper
         : m_rVulkanDevice{vulkanDevice}
         , m_SwapChainExtent{extent}
     {
-        Debug::Log("called SwapChain Constructor");
         createSwapchain();
         createImageViews();
         createRenderPass();
@@ -18,14 +17,8 @@ namespace Myu::VulkanWrapper
         createSyncObjects();
     }
 
-    VulkanSwapchain::VulkanSwapchain(VulkanDevice&                    vulkanDevice,
-                                     VkExtent2D                       extent,
-                                     std::shared_ptr<VulkanSwapchain> oldSwapChain)
-        : m_rVulkanDevice{vulkanDevice}
-        , m_SwapChainExtent{extent}
-        , m_OldSwapChain{oldSwapChain}
+    VulkanSwapchain::VulkanSwapchain(VulkanDevice& vulkanDevice, VkExtent2D extent, std::shared_ptr<VulkanSwapchain> oldSwapChain) : m_rVulkanDevice{vulkanDevice}, m_SwapChainExtent{extent}
     {
-        m_OldSwapChain = nullptr;
         createSwapchain();
         createImageViews();
         createRenderPass();
@@ -104,7 +97,6 @@ namespace Myu::VulkanWrapper
         createInfo.presentMode    = presentMode;
         createInfo.clipped        = VK_TRUE;
         createInfo.oldSwapchain   = VK_NULL_HANDLE;
-        //m_OldSwapChain == nullptr ? VK_NULL_HANDLE : m_OldSwapChain->GetVkSwapChain();
 
         if (vkCreateSwapchainKHR(m_rVulkanDevice.GetVkLogicalDevice(), &createInfo, nullptr, &m_SwapChain) !=
             VK_SUCCESS)
@@ -222,20 +214,6 @@ namespace Myu::VulkanWrapper
         vkCmdEndRenderPass(commandBuffer);
     }
 
-    void VulkanSwapchain::BindDynamicViewport(VkCommandBuffer commandBuffer, VkViewport viewport)
-    {
-        //VkViewport viewport{};
-        //viewport.x        = 0.0f;
-        //viewport.y        = 0.0f;
-        //viewport.width    = static_cast<float>(m_SwapChainExtent.width);
-        //viewport.height   = static_cast<float>(m_SwapChainExtent.height);
-        //viewport.minDepth = 0.0f;
-        //viewport.maxDepth = 1.0f;
-        VkRect2D scissor{{0, 0}, m_SwapChainExtent};
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    }
-
     VkFormat VulkanSwapchain::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
     {
         for (VkFormat format : candidates)
@@ -280,7 +258,7 @@ namespace Myu::VulkanWrapper
         colorAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format         = findDepthFormat();
@@ -424,7 +402,7 @@ namespace Myu::VulkanWrapper
                                      imageIndex);
     }
 
-    VkResult VulkanSwapchain::PresentQueue(std::vector<VkCommandBuffer>& currentBuffer, uint32_t* imageIndex, uint32_t currentFrame)
+    VkResult VulkanSwapchain::PresentQueue(std::vector<VkCommandBuffer>& currentBuffer, uint32_t imageIndex, uint32_t currentFrame)
     {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -451,16 +429,15 @@ namespace Myu::VulkanWrapper
 
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores    = signalSemaphores;
 
         VkSwapchainKHR swapChains[] = {m_SwapChain};
         presentInfo.swapchainCount  = 1;
         presentInfo.pSwapchains     = swapChains;
-
-        presentInfo.pImageIndices = imageIndex;
-
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = nullptr;
+        
         return vkQueuePresentKHR(m_rVulkanDevice.GetVkPresentQueue(), &presentInfo);
     }
 }  // namespace Myu::VulkanWrapper

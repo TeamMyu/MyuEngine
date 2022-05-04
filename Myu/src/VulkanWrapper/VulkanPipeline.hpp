@@ -22,8 +22,6 @@ namespace Myu::VulkanWrapper
         VkPipelineColorBlendAttachmentState            colorBlendAttachment{};
         VkPipelineColorBlendStateCreateInfo            colorBlendInfo{};
         VkPipelineDepthStencilStateCreateInfo          depthStencilInfo{};
-        std::vector<VkDynamicState>                    dynamicStateEnables{};
-        VkPipelineDynamicStateCreateInfo               dynamicStateInfo{};
         VkPipelineLayout                               pipelineLayout = nullptr;
 
         VulkanPipelineSpecification();
@@ -32,9 +30,7 @@ namespace Myu::VulkanWrapper
     class VulkanPipeline
     {
     public:
-        VulkanPipeline(VulkanDevice &               vulkanDevice,
-                       VkRenderPass                 vkRenderPass,
-                       const VulkanPipelineSpecification &VulkanPipelineSpecification);
+        VulkanPipeline(VulkanDevice &vulkanDevice, VkRenderPass vkRenderPass, const VulkanPipelineSpecification &VulkanPipelineSpecification);
         ~VulkanPipeline();
 
         VulkanPipeline(const VulkanPipeline &) = delete;
@@ -51,4 +47,4 @@ namespace Myu::VulkanWrapper
         // ---
         VkPipeline m_VkPipeline;
     };
-}  // namespace Myu::VulkanWrapper
+}

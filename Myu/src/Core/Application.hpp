@@ -57,14 +57,11 @@ namespace Myu
 
         VulkanWrapper::VulkanPipeline* m_pPipeline;
         VkPipelineLayout m_PipelineLayout;
-
-        VulkanWrapper::VulkanPipeline* m_pViewportPipeline;
         
         std::vector<GameObject> gameObjects;
 
         void mainLoop();
         void cleanup();
-        void recreateSwapChain();
         
         void loadGameObjects();
         void renderGameObjects(VkCommandBuffer commandBuffer);

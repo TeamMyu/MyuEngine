@@ -174,7 +174,6 @@ namespace Myu::VulkanWrapper
                             VkCommandPool        commandPool)
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-        std::cout << bufferSize << std::endl;
         VkBuffer       stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         createBuffer(physicalDevice,

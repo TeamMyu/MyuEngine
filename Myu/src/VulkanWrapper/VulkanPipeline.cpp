@@ -72,7 +72,6 @@ namespace Myu::VulkanWrapper
 		pipelineInfo.pMultisampleState = &VulkanPipelineSpecification.multisampleInfo;
 		pipelineInfo.pColorBlendState = &VulkanPipelineSpecification.colorBlendInfo;
 		pipelineInfo.pDepthStencilState = &VulkanPipelineSpecification.depthStencilInfo;
-		pipelineInfo.pDynamicState = &VulkanPipelineSpecification.dynamicStateInfo;
 		pipelineInfo.layout = VulkanPipelineSpecification.pipelineLayout;
 		pipelineInfo.renderPass = vkRenderPass;
 		pipelineInfo.subpass = 0;
@@ -108,7 +107,7 @@ namespace Myu::VulkanWrapper
 			VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		this->inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		this->inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
-
+        
 		this->viewportInfo.sType =
 			VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		this->viewportInfo.viewportCount = 1;
@@ -176,17 +175,5 @@ namespace Myu::VulkanWrapper
 		this->depthStencilInfo.stencilTestEnable = VK_FALSE;
 		this->depthStencilInfo.front = {};  // Optional
 		this->depthStencilInfo.back = {};  // Optional
-
-		this->dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT,
-															VK_DYNAMIC_STATE_SCISSOR };
-		this->dynamicStateInfo.sType =
-			VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		this->dynamicStateInfo.pDynamicStates =
-			this->dynamicStateEnables.data();
-		this->dynamicStateInfo.dynamicStateCount =
-			static_cast<uint32_t>(this->dynamicStateEnables.size());
-		this->dynamicStateInfo.flags = 0;
-        
-        std::cout << "test" << std::endl;
 	}
-}  // namespace Myu::VulkanWrapper
+}
