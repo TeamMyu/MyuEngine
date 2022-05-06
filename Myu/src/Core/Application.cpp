@@ -4,6 +4,8 @@
 
 #include <chrono>
 #include "Debug.hpp"
+#include "../VulkanWrapper/Utils.hpp"
+#include "../VulkanWrapper/VulkanTexture.hpp"
 
 VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout      pipelineLayout;
@@ -29,32 +31,22 @@ std::vector<VkDescriptorSet> descriptorSets(Myu::VulkanWrapper::MAX_FRAMES_IN_FL
 
 namespace Myu
 {
-    void Application::createCommandPool(VkCommandPool* cmdPool)
-    {
-        VkCommandPoolCreateInfo poolInfo{};
-        poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = m_Device.GetQueueFamilyIndices().graphicsFamily.value();
-
-        if (vkCreateCommandPool(m_Device.GetVkLogicalDevice(), &poolInfo, nullptr, cmdPool) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create command pool!");
-        }
-    }
-
     Application::Application()
     {
         loadGameObjects();
         
         // creatae descriptor set layout
         auto uniformBinding = VulkanWrapper::createDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 1);
-        std::vector<VkDescriptorSetLayoutBinding> bindings { uniformBinding };
+        auto samplerBinding = VulkanWrapper::createDescriptorSetLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
+        std::vector<VkDescriptorSetLayoutBinding> bindings { uniformBinding, samplerBinding };
         VulkanWrapper::createDescriptorSetLayout(m_Device.GetVkLogicalDevice(), bindings, &descriptorSetLayout);
         
         // create descriptor set
         for (auto& go : gameObjects)
         {
-            VulkanWrapper::createUniformDescriptorSet(m_Device.GetVkLogicalDevice(), m_Device.GetVkDescriptorPool(), descriptorSetLayout, go.model->getDescriptorSet(), go.model->getUniformBuffer());
+            auto texture = VulkanWrapper::VulkanTexture();
+            texture.loadFromFile(&m_Device, "textures/viking_room.png");
+            VulkanWrapper::Utils::createDescriptorSet(m_Device.GetVkLogicalDevice(), m_Device.GetVkDescriptorPool(), descriptorSetLayout, go.model->getDescriptorSet(), go.model->getUniformBuffer(), texture.getImageView(), texture.getSampler());
         }
         
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
@@ -81,6 +73,7 @@ namespace Myu
         
         m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
         
+        // create texture relevent resources
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
         
         startTime = std::chrono::high_resolution_clock::now();
@@ -171,7 +164,7 @@ namespace Myu
 //        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
 //        gameObjects.push_back(std::move(testGO));
         
-        auto model2 = std::make_shared<Model>(m_Device, "models/smooth_vase.obj");
+        auto model2 = std::make_shared<Model>(m_Device, "models/viking_room.obj");
         auto testGO2 = GameObject::createGameObject();
         testGO2.model = model2;
         testGO2.transform.position = glm::vec3(0.f, 0.f, 0.f);

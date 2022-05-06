@@ -133,7 +133,6 @@ namespace Myu::VulkanWrapper
     VkImageView createImageView (VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
     void        createImage     (VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
-    void        createTextureImage     (VkPhysicalDevice physicalDevice, VkDevice device, const std::string TEXTURE_PATH, VkImage* textureImage, VkDeviceMemory textureImageMemory, VkQueue queue, VkCommandPool commandPool);
     VkImageView createTextureImageView (VkDevice device, VkImage textureImage);
 
     void createTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device, VkSampler& textureSampler);

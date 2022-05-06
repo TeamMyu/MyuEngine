@@ -15,10 +15,10 @@ layout(push_constant) uniform Push
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
-layout(location = 3) in vec2 inUv;
+layout(location = 3) in vec2 inUV;
 
 layout(location = 0) out vec3 fragColor;
-//layout(location = 1) out vec2 fragTexCoord;
+layout(location = 1) out vec2 outUV;
 
 const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
 
@@ -31,5 +31,5 @@ void main() {
     float lightIntensity = max(dot(normalWorldSpace,DIRECTION_TO_LIGHT), 0);
 
     fragColor = lightIntensity * inColor;
-    //fragTexCoord = inTexCoord;
+    outUV = inUV;
 }

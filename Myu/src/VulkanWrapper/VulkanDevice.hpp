@@ -26,16 +26,16 @@ namespace Myu::VulkanWrapper
         VulkanDevice(const VulkanDevice&) = delete;
         VulkanDevice operator=(const VulkanDevice&) = delete;
 
-        VkSurfaceKHR            GetSurface() { return m_Surface; }
-        VkInstance              GetVkInstance() { return m_Instance; }
-        VkPhysicalDevice        GetVkPhysicalDevice() { return m_PhysicalDevice; }
-        VkDevice                GetVkLogicalDevice() { return m_Device; }
-        VkQueue                 GetVkGraphicsQueue() { return m_GraphicsQueue; }
-        VkQueue                 GetVkPresentQueue() { return m_PresentQueue; }
+        VkSurfaceKHR            GetSurface() const { return m_Surface; }
+        VkInstance              GetVkInstance() const { return m_Instance; }
+        VkPhysicalDevice        GetVkPhysicalDevice() const { return m_PhysicalDevice; }
+        VkDevice                GetVkLogicalDevice() const { return m_Device; }
+        VkQueue                 GetVkGraphicsQueue() const { return m_GraphicsQueue; }
+        VkQueue                 GetVkPresentQueue() const { return m_PresentQueue; }
         QueueFamilyIndices      GetQueueFamilyIndices() { return findQueueFamilies(m_PhysicalDevice); }
         SwapChainSupportDetails GetSwapChainDetails() { return querySwapChainSupport(m_PhysicalDevice); }
-        VkCommandPool           GetVkCommandPool() { return m_CommandPool; }
-        VkDescriptorPool        GetVkDescriptorPool() { return m_DescriptorPool; }
+        VkCommandPool           GetVkCommandPool() const { return m_CommandPool; }
+        VkDescriptorPool        GetVkDescriptorPool() const { return m_DescriptorPool; }
 
         std::vector<VkCommandBuffer> GetCommandBuffers() { return m_CommandBuffers; }
 

@@ -40,7 +40,6 @@ namespace Myu
         VkImageView    textureImageView;
         VkSampler      textureSampler;
 
-        void createCommandPool(VkCommandPool* cmdPool);
         void createImGuiCommandBuffers();
         void createImGuiFramebuffers();
         void createImGuiRenderPass();
