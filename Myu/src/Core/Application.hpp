@@ -5,6 +5,7 @@
 #include "../VulkanWrapper/VulkanPipeline.hpp"
 #include "../VulkanWrapper/VulkanSwapchain.hpp"
 #include "Window.hpp"
+#include "../VulkanWrapper/Utils.hpp"
 
 #include "Model.hpp"
 #include "GameObject.hpp"
@@ -53,11 +54,13 @@ namespace Myu
         }
 
     private:
-
         VulkanWrapper::VulkanPipeline* m_pPipeline;
         VkPipelineLayout m_PipelineLayout;
         
         std::vector<GameObject> gameObjects;
+        
+        VulkanWrapper::Utils::DescriptorAllocator mDescAllocator;
+        VulkanWrapper::Utils::DescriptorLayoutCache mDescLayoutCache;
 
         void mainLoop();
         void cleanup();

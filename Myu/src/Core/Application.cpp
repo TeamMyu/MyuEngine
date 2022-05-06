@@ -4,8 +4,8 @@
 
 #include <chrono>
 #include "Debug.hpp"
-#include "../VulkanWrapper/Utils.hpp"
 #include "../VulkanWrapper/VulkanTexture.hpp"
+#include "../VulkanWrapper/VulkanInitializer.hpp"
 
 VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout      pipelineLayout;
@@ -35,22 +35,27 @@ namespace Myu
     {
         loadGameObjects();
         
-        // creatae descriptor set layout
-        auto uniformBinding = VulkanWrapper::createDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 1);
-        auto samplerBinding = VulkanWrapper::createDescriptorSetLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
-        std::vector<VkDescriptorSetLayoutBinding> bindings { uniformBinding, samplerBinding };
-        VulkanWrapper::createDescriptorSetLayout(m_Device.GetVkLogicalDevice(), bindings, &descriptorSetLayout);
+        // initialize descriptor manage variables
+        mDescAllocator.init(m_Device.GetVkLogicalDevice());
+        mDescLayoutCache.init(m_Device.GetVkLogicalDevice());
         
-        // create descriptor set
+        // create descriptor set of all game objects
         for (auto& go : gameObjects)
         {
             auto texture = VulkanWrapper::VulkanTexture();
             texture.loadFromFile(&m_Device, "textures/viking_room.png");
-            VulkanWrapper::Utils::createDescriptorSet(m_Device.GetVkLogicalDevice(), m_Device.GetVkDescriptorPool(), descriptorSetLayout, go.model->getDescriptorSet(), go.model->getUniformBuffer(), texture.getImageView(), texture.getSampler());
+            
+            auto uniformBufferInfo = VulkanWrapper::Utils::createDescBufferInfo(go.model->getUniformBuffer(), 0, sizeof(VulkanWrapper::UniformBufferObject));
+            auto textureInfo = VulkanWrapper::Utils::createDescImageInfo(texture.getImageView(), texture.getSampler());
+            
+            VulkanWrapper::Utils::DescriptorBuilder::begin(&mDescLayoutCache, &mDescAllocator)
+                .bindBuffer(0, &uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                .bindImage(1, &textureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                .build(go.model->getDescriptorSet(), descriptorSetLayout);
         }
         
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
-
+        
         VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
         pipelineSpec.vertFilepath   = "shaders/vert.spv";
         pipelineSpec.fragFilepath   = "shaders/frag.spv";
