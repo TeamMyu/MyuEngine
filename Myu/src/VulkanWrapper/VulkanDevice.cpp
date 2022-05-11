@@ -1,6 +1,5 @@
 
 #include "VulkanDevice.hpp"
-#include "../Core/Debug.hpp"
 
 namespace Myu::VulkanWrapper
 {

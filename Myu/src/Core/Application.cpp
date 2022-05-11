@@ -3,7 +3,6 @@
 #include "KeyboardListener.hpp"
 
 #include <chrono>
-#include "Debug.hpp"
 #include "../VulkanWrapper/VulkanTexture.hpp"
 #include "../VulkanWrapper/VulkanInitializer.hpp"
 

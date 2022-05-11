@@ -1,7 +1,6 @@
 
 #include "VulkanPipeline.hpp"
 #include "../Core/Utils.hpp"
-#include "../Core/Debug.hpp"
 
 namespace Myu::VulkanWrapper
 {
