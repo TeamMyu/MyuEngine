@@ -103,13 +103,7 @@ namespace Myu::VulkanWrapper
 
     void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet>& descriptorSets, std::vector<VkBuffer>& uniformBuffers, VkImageView textureImageView, VkSampler textureSampler);
 
-    void createBuffer        (VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    void createVertexBuffer  (VkPhysicalDevice physicalDevice, VkDevice device, std::vector<Vertex>& vertices, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory, VkQueue queue, VkCommandPool commandPool);
-    void createIndexBuffer   (VkPhysicalDevice physicalDevice, VkDevice device, std::vector<uint32_t>& indices, VkBuffer* indexBuffer, VkDeviceMemory indexBufferMemory, VkQueue queue, VkCommandPool commandPool);
-    void createUniformBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkBuffer &buffer, VkDeviceMemory &memory);
-
     void copyBufferToImage (VkDevice device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, VkQueue queue, VkCommandPool commandPool);
-    void copyBuffer        (VkDevice device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkQueue queue, VkCommandPool commandPool);
 
     void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat);
 

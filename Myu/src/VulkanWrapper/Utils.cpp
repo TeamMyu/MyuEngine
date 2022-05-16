@@ -524,4 +524,117 @@ namespace Myu::VulkanWrapper::Utils
         
         vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
+
+    void createVertexBuffer(const VulkanDevice& device, const std::vector<Vertex>& vertices, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory)
+    {
+        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+        VkBuffer       stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+        void *data;
+        vkMapMemory(device.GetVkLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertices.data(), (size_t)bufferSize);
+        vkUnmapMemory(device.GetVkLogicalDevice(), stagingBufferMemory);
+
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+
+        copyBuffer(device, stagingBuffer, *vertexBuffer, bufferSize);
+
+        vkDestroyBuffer(device.GetVkLogicalDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(device.GetVkLogicalDevice(), stagingBufferMemory, nullptr);
+    }
+
+    void createIndexBuffer(const VulkanDevice& device, const std::vector<uint32_t>& indices, VkBuffer *pIndexBuffer, VkDeviceMemory* pIndexBufferMemory)
+    {
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+        VkBuffer       stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+        void *data;
+        vkMapMemory(device.GetVkLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, indices.data(), (size_t)bufferSize);
+        vkUnmapMemory(device.GetVkLogicalDevice(), stagingBufferMemory);
+
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, pIndexBuffer, pIndexBufferMemory);
+
+        copyBuffer(device, stagingBuffer, *pIndexBuffer, bufferSize);
+
+        vkDestroyBuffer(device.GetVkLogicalDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(device.GetVkLogicalDevice(), stagingBufferMemory, nullptr);
+    }
+
+    void createUniformBuffer(const VulkanDevice& device, VkBuffer* pBuffer, VkDeviceMemory* pMemory)
+    {
+        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pBuffer, pMemory);
+    }
+
+    void createBuffer(const VulkanDevice& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* pBuffer, VkDeviceMemory* pBufferMemory)
+    {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size        = size;
+        bufferInfo.usage       = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateBuffer(device.GetVkLogicalDevice(), &bufferInfo, nullptr, pBuffer) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create buffer!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device.GetVkLogicalDevice(), *pBuffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize  = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(device.GetVkPhysicalDevice(), memRequirements.memoryTypeBits, properties);
+
+        if (vkAllocateMemory(device.GetVkLogicalDevice(), &allocInfo, nullptr, pBufferMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate buffer memory!");
+        }
+
+        vkBindBufferMemory(device.GetVkLogicalDevice(), *pBuffer, *pBufferMemory, 0);
+    }
+
+    void copyBuffer(const VulkanDevice& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+    {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
+
+        VkBufferCopy copyRegion{};
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        endSingleTimeCommands(device, commandBuffer);
+    }
+
+    void updateUniformBuffer(VkDevice device, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
+    {
+        UniformBufferObject ubo{};
+        ubo.model = modelMat;
+        ubo.view = viewMat;
+        ubo.proj = projMat;
+
+        void *data;
+        vkMapMemory(device, uniformBuffersMemory, 0, sizeof(ubo), 0, &data);
+        memcpy(data, &ubo, sizeof(ubo));
+        vkUnmapMemory(device, uniformBuffersMemory);
+    }
+
+    void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet)
+    {
+        vkCmdBindDescriptorSets(commandBuffer,
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                pipelineLayout,
+                                0,
+                                1,
+                                &descriptorSet,
+                                0,
+                                nullptr);
+    }
 }

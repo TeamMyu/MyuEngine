@@ -2,6 +2,8 @@
 
 #include "../VulkanWrapper/VulkanDevice.hpp"
 #include "../VulkanWrapper/Vulkan.hpp"
+#include "../VulkanWrapper/Utils.hpp"
+#include "Mesh.hpp"
 
 namespace Myu
 {
@@ -13,12 +15,9 @@ namespace Myu
         Model(VulkanWrapper::VulkanDevice& vulkanDevice, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices);
         
         ~Model();
-        void bind(VkCommandBuffer commandBuffer);
+        void bind(VkCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat);
         void draw(VkCommandBuffer commandBuffer);
-        
-        VkBuffer& getUniformBuffer(){return m_uniformBuffer;}
-        VkDeviceMemory& getUniformMemory() {return m_uniformBufferMemory;}
-        VkDescriptorSet& getDescriptorSet() {return m_descriptorSet;}
+        std::vector<Mesh> getMeshes(){return mMeshes;}
 
     private:
         void loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices);
@@ -28,14 +27,10 @@ namespace Myu
         std::vector<VulkanWrapper::Vertex> m_vertices;
         std::vector<uint32_t> m_indices;
         
+        std::vector<Mesh> mMeshes;
+
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
-        VkBuffer indexBuffer;
-        VkDeviceMemory indexBufferMemory;
-        VkBuffer m_uniformBuffer;
-        VkDeviceMemory m_uniformBufferMemory;
         VkDescriptorSet m_descriptorSet;
-
-        glm::mat4 m_ModelMatrix;
     };
 }

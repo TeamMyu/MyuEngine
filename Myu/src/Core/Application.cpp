@@ -6,7 +6,6 @@
 #include "../VulkanWrapper/VulkanTexture.hpp"
 #include "../VulkanWrapper/VulkanInitializer.hpp"
 
-VkDescriptorSetLayout descriptorSetLayout;
 VkPipelineLayout      pipelineLayout;
 VkPipeline            graphicsPipeline;
 
@@ -17,8 +16,6 @@ VkSampler      textureSampler;
 std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 Myu::KeyboardListener keyboardListener {};
 Myu::Camera camera = Myu::Camera();
-
-const std::string TEXTURE_PATH = "textures/viking_room.png";
 
 std::vector<VkCommandBuffer> m_ImGuiCommandBuffers;
 VkDescriptorPool             m_ImGuiDescriptorPool;
@@ -34,26 +31,8 @@ namespace Myu
     {
         loadGameObjects();
         
-        // initialize descriptor manage variables
-        mDescAllocator.init(m_Device.GetVkLogicalDevice());
-        mDescLayoutCache.init(m_Device.GetVkLogicalDevice());
-        
-        // create descriptor set of all game objects
-        for (auto& go : gameObjects)
-        {
-            auto texture = VulkanWrapper::VulkanTexture();
-            texture.loadFromFile(&m_Device, "textures/viking_room.png");
-            
-            auto uniformBufferInfo = VulkanWrapper::Utils::createDescBufferInfo(go.model->getUniformBuffer(), 0, sizeof(VulkanWrapper::UniformBufferObject));
-            auto textureInfo = VulkanWrapper::Utils::createDescImageInfo(texture.getImageView(), texture.getSampler());
-            
-            VulkanWrapper::Utils::DescriptorBuilder::begin(&mDescLayoutCache, &mDescAllocator)
-                .bindBuffer(0, &uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-                .bindImage(1, &textureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-                .build(go.model->getDescriptorSet(), descriptorSetLayout);
-        }
-        
-        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &descriptorSetLayout, &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
+        //FIXME: HACK
+        VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &gameObjects[0].model->getMeshes()[0].getMaterial().getDescriptorLayout(), &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
         
         VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
         pipelineSpec.vertFilepath   = "shaders/vert.spv";
@@ -84,7 +63,7 @@ namespace Myu
         
         camera.setViewTarget(glm::vec3(0, 0, -2), glm::vec3(0, 0, 0));
         float aspect = m_Swapchain.GetVkExtent2D().width / (float)m_Swapchain.GetVkExtent2D().height;
-        camera.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 10.f);
+        camera.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 100.f);
     }
 
     Application::~Application()
@@ -94,8 +73,6 @@ namespace Myu
 
         vkDestroyImage(m_Device.GetVkLogicalDevice(), textureImage, nullptr);
         vkFreeMemory(m_Device.GetVkLogicalDevice(), textureImageMemory, nullptr);
-
-        vkDestroyDescriptorSetLayout(m_Device.GetVkLogicalDevice(), descriptorSetLayout, nullptr);
 
         glfwTerminate();
     }
@@ -168,7 +145,7 @@ namespace Myu
 //        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
 //        gameObjects.push_back(std::move(testGO));
         
-        auto model2 = std::make_shared<Model>(m_Device, "models/viking_room.obj");
+        auto model2 = std::make_shared<Model>(m_Device, "models/paimon.obj");
         auto testGO2 = GameObject::createGameObject();
         testGO2.model = model2;
         testGO2.transform.position = glm::vec3(0.f, 0.f, 0.f);
@@ -181,10 +158,8 @@ namespace Myu
         
         for (auto& go : gameObjects)
         {
-            VulkanWrapper::updateUniformBuffer(m_Device.GetVkLogicalDevice(), m_Swapchain.GetVkExtent2D(), go.model->getUniformMemory(), go.transform.toMat4(), camera.getView(), camera.getProjection());
-            VulkanWrapper::bindDescriptorSet(commandBuffer, pipelineLayout, go.model->getDescriptorSet());
-            
-            go.model->bind(commandBuffer);
+            // FIMXE: HACK
+            go.model->bind(commandBuffer, pipelineLayout, go.transform.toMat4(), camera.getView(), camera.getProjection());
             
             go.model->draw(commandBuffer);
         }
