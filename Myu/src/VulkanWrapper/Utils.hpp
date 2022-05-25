@@ -92,9 +92,9 @@ namespace Myu::VulkanWrapper::Utils
     public:
         static DescriptorBuilder begin(DescriptorLayoutCache* layoutCache, DescriptorAllocator* allocator );
 
-        DescriptorBuilder& bindBuffer(uint32_t binding, VkDescriptorBufferInfo* bufferInfo, VkDescriptorType type, VkShaderStageFlags stageFlags);
+        DescriptorBuilder& bindBuffer(VkDescriptorBufferInfo* bufferInfo, VkDescriptorType type, VkShaderStageFlags stageFlags);
 
-        DescriptorBuilder& bindImage(uint32_t binding, VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags);
+        DescriptorBuilder& bindImage(VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags);
 
         bool build(VkDescriptorSet& set, VkDescriptorSetLayout& layout);
         bool build(VkDescriptorSet& set);

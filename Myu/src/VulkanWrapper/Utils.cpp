@@ -185,7 +185,7 @@ namespace Myu::VulkanWrapper::Utils
     }
 
 
-    DescriptorBuilder& DescriptorBuilder::bindBuffer(uint32_t binding, VkDescriptorBufferInfo* bufferInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
+    DescriptorBuilder& DescriptorBuilder::bindBuffer(VkDescriptorBufferInfo* bufferInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
     {
         VkDescriptorSetLayoutBinding newBinding{};
 
@@ -193,7 +193,7 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.descriptorType = type;
         newBinding.pImmutableSamplers = nullptr;
         newBinding.stageFlags = stageFlags;
-        newBinding.binding = binding;
+        newBinding.binding = bindings.size();
 
         bindings.push_back(newBinding);
 
@@ -204,14 +204,14 @@ namespace Myu::VulkanWrapper::Utils
         newWrite.descriptorCount = 1;
         newWrite.descriptorType = type;
         newWrite.pBufferInfo = bufferInfo;
-        newWrite.dstBinding = binding;
+        newWrite.dstBinding = newBinding.binding;
 
         writes.push_back(newWrite);
         return *this;
     }
 
 
-    DescriptorBuilder& DescriptorBuilder::bindImage(uint32_t binding,  VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
+    DescriptorBuilder& DescriptorBuilder::bindImage(VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
     {
         VkDescriptorSetLayoutBinding newBinding{};
 
@@ -219,7 +219,7 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.descriptorType = type;
         newBinding.pImmutableSamplers = nullptr;
         newBinding.stageFlags = stageFlags;
-        newBinding.binding = binding;
+        newBinding.binding = bindings.size();
 
         bindings.push_back(newBinding);
 
@@ -230,7 +230,7 @@ namespace Myu::VulkanWrapper::Utils
         newWrite.descriptorCount = 1;
         newWrite.descriptorType = type;
         newWrite.pImageInfo = imageInfo;
-        newWrite.dstBinding = binding;
+        newWrite.dstBinding = newBinding.binding;
 
         writes.push_back(newWrite);
         return *this;
