@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vendor.hpp"
+#include "../Vendor.hpp"
 #include "GameObject.hpp"
 
 namespace Myu
