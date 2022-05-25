@@ -71,7 +71,6 @@ namespace Myu
         indices.clear();
         
         int counter = 0;
-        std::unordered_map<VulkanWrapper::Vertex, uint32_t> uniqueVertices{};
         std::cout << "shapes size: " << shapes.size() << std::endl;
         std::cout << "material size: " << materials.size() << std::endl;
         for (const auto &shape : shapes)

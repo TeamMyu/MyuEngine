@@ -9,7 +9,7 @@ namespace Myu::VulkanWrapper
     {
     public:
         void destroy();
-        void loadFromFile(VulkanDevice* device, std::string filePath);
+        void loadFromFile(VulkanDevice* device, const char * filePath);
         VkImageView& getImageView() {return mImageView;}
         VkSampler& getSampler() {return mSampler;}
         

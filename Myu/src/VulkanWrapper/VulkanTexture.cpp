@@ -1,6 +1,7 @@
 #include "VulkanTexture.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_WINDOWS_UTF8
 #include "stb_image.h"
 
 #include <vulkan/vulkan.h>
@@ -21,12 +22,12 @@ namespace Myu::VulkanWrapper
         vkFreeMemory(mDevice->GetVkLogicalDevice(), mImageMemory, nullptr);
     }
 
-    void VulkanTexture::loadFromFile(VulkanDevice* device, std::string filePath)
+    void VulkanTexture::loadFromFile(VulkanDevice *device, const char *filePath)
     {
         this->mDevice = device;
         
         int texWidth, texHeight, texChannels;
-        stbi_uc *pixels = stbi_load(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc *pixels = stbi_load(filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels)

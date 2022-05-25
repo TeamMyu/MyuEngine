@@ -6,10 +6,12 @@ namespace Myu
     {
         // create texture
         //FIXME: temp
-        std::string textureName = matInfo.diffuse_texname;
-        if (!textureName.empty())
-            mTexture.loadFromFile(device, "textures/" + textureName);
+        std::string diffuseTexname = "textures/" + matInfo.diffuse_texname;
+
+        if (!matInfo.diffuse_texname.empty())
+            mTexture.loadFromFile(device, (const char*)diffuseTexname.c_str());
         
+       
         // create uniform buffer
         VulkanWrapper::Utils::createUniformBuffer(*device, &mUniformBuffer, &mUniformBufferMemory);
         
