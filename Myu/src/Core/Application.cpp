@@ -55,6 +55,9 @@ namespace Myu
         pipelineSpec.viewportInfo.pScissors = &scissor;
         
         m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+
+        pipelineSpec.vertFilepath   = "shaders/specular.vert.spv";
+        m_pSpecularPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
         
         // create texture relevent resources
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
