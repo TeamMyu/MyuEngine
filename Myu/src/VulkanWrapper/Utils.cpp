@@ -2,6 +2,22 @@
 
 namespace Myu::VulkanWrapper::Utils
 {
+    VkShaderModule createShaderModule(const VkDevice& device, const std::vector<char>& code)
+    {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = code.size();
+        createInfo.pCode    = reinterpret_cast<const uint32_t*>(code.data());
+
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create shader module!");
+        }
+
+        return shaderModule;
+    }
+
     VkDescriptorPool createDescPool(VkDevice device, const DescriptorAllocator::PoolSizes& poolSizes, int count, VkDescriptorPoolCreateFlags flags)
     {
         std::vector<VkDescriptorPoolSize> sizes;
@@ -573,6 +589,35 @@ namespace Myu::VulkanWrapper::Utils
         createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pBuffer, pMemory);
     }
 
+    void createStorageBuffer(const VulkanDevice& device, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage, VkBuffer* pBuffer, VkDeviceMemory* pMemory)
+    {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size        = allocSize;
+        bufferInfo.usage       = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateBuffer(device.GetVkLogicalDevice(), &bufferInfo, nullptr, pBuffer) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create buffer!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device.GetVkLogicalDevice(), *pBuffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize  = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(device.GetVkPhysicalDevice(), memRequirements.memoryTypeBits, memoryUsage);
+
+        if (vkAllocateMemory(device.GetVkLogicalDevice(), &allocInfo, nullptr, pMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate buffer memory!");
+        }
+
+        vkBindBufferMemory(device.GetVkLogicalDevice(), *pBuffer, *pMemory, 0);
+    }
+
     void createBuffer(const VulkanDevice& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* pBuffer, VkDeviceMemory* pBufferMemory)
     {
         VkBufferCreateInfo bufferInfo{};
@@ -613,13 +658,8 @@ namespace Myu::VulkanWrapper::Utils
         endSingleTimeCommands(device, commandBuffer);
     }
 
-    void updateUniformBuffer(VkDevice device, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
+    void updateUniformBuffer(VkDevice device, VkDeviceMemory& uniformBuffersMemory, UniformBufferObject ubo)
     {
-        UniformBufferObject ubo{};
-        ubo.model = modelMat;
-        ubo.view = viewMat;
-        ubo.proj = projMat;
-
         void *data;
         vkMapMemory(device, uniformBuffersMemory, 0, sizeof(ubo), 0, &data);
         memcpy(data, &ubo, sizeof(ubo));

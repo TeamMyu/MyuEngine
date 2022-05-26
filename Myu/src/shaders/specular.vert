@@ -89,7 +89,7 @@ void main() {
         specularLight += intensity * blinnTerm;
     }
  
-    fragColor = ambientLight + directionalLight + diffuseLight + specularLight;
+    fragColor += ambientLight + directionalLight + diffuseLight + specularLight;
 
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
     

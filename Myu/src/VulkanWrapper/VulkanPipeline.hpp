@@ -10,11 +10,13 @@ namespace Myu::VulkanWrapper
         VulkanPipelineSpecification(const VulkanPipelineSpecification &) = delete;
         VulkanPipelineSpecification &operator=(const VulkanPipelineSpecification &) = delete;
 
-        std::string vertFilepath;
-        std::string fragFilepath;
+        VkStructureType pipelineType{};
+
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
 
         std::vector<VkVertexInputBindingDescription>   bindingDescriptions{};
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+
         VkPipelineViewportStateCreateInfo              viewportInfo{};
         VkPipelineInputAssemblyStateCreateInfo         inputAssemblyInfo{};
         VkPipelineRasterizationStateCreateInfo         rasterizationInfo{};
@@ -38,7 +40,6 @@ namespace Myu::VulkanWrapper
 
         void bind(VkCommandBuffer commandBuffer);
 
-        VkShaderModule   createShaderModule(const VkDevice &device, const std::vector<char> &code);
         VkPipeline       GetVulkanPipeline() { return m_VkPipeline; }
 
     private:

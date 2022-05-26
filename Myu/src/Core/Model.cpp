@@ -29,7 +29,7 @@ namespace Myu
         }
     }
 
-    void Model::bind(VkCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
+    void Model::bind(VkCommandBuffer& commandBuffer, VkPipelineLayout pipelineLayout, Myu::VulkanWrapper::UniformBufferObject ubo)
     {
         for (auto& mesh : mMeshes)
         {
@@ -39,19 +39,26 @@ namespace Myu
             vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
             
             if (mesh.material != nullptr){
-            VulkanWrapper::Utils::updateUniformBuffer(m_rVulkanDevice.GetVkLogicalDevice(), mesh.getMaterial().getUniformBufferMemory(), modelMat, viewMat, projMat);
-            
-            VulkanWrapper::Utils::bindDescriptorSet(commandBuffer, pipelineLayout, mesh.getMaterial().getDescriptorSet());
+                VulkanWrapper::Utils::updateUniformBuffer(m_rVulkanDevice.GetVkLogicalDevice(), mesh.getMaterial().getUniformBufferMemory(), ubo);
+                VulkanWrapper::Utils::bindDescriptorSet(commandBuffer, pipelineLayout, mesh.getMaterial().getDescriptorSet());
             }
             
             vkCmdDrawIndexed(commandBuffer, mesh.getIndicesSize(), 1, 0, 0, 0);
         }
     }
 
-    void Model::draw(VkCommandBuffer commandBuffer)
+    void Model::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, Myu::VulkanWrapper::UniformBufferObject ubo)
     {
-//        for (auto& mesh : mMeshes)
-//            vkCmdDrawIndexed(commandBuffer, mesh.getIndicesSize(), 1, 0, 0, 0);
+        for (auto& mesh : mMeshes)
+        {
+            if (mesh.material != nullptr)
+            {
+                VulkanWrapper::Utils::updateUniformBuffer(m_rVulkanDevice.GetVkLogicalDevice(), mesh.getMaterial().getUniformBufferMemory(), ubo);
+                VulkanWrapper::Utils::bindDescriptorSet(commandBuffer, pipelineLayout, mesh.getMaterial().getDescriptorSet());
+            }
+
+            vkCmdDraw(commandBuffer, 0, 1, 0, 0);
+        }
     }
 
     void Model::loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)

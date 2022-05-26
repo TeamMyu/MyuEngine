@@ -48,12 +48,11 @@ namespace Myu::VulkanWrapper
         glm::vec3 normal{};
         glm::vec2 uv{};
 
-        static std::array<VkVertexInputBindingDescription, 1> getBindingDescription()
+        static std::vector<VkVertexInputBindingDescription> getBindingDescription()
         {
-            std::array<VkVertexInputBindingDescription, 1> bindingDescription{};
-            bindingDescription[0].binding   = 0;
-            bindingDescription[0].stride    = sizeof(Vertex);
-            bindingDescription[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            std::vector<VkVertexInputBindingDescription> bindingDescription{};
+
+            bindingDescription.push_back({0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX});
 
             return bindingDescription;
         }

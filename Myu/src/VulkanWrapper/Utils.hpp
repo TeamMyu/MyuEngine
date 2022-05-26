@@ -32,7 +32,7 @@ namespace Myu::VulkanWrapper::Utils
                 { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2.f },
                 { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2.f },
                 { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1.f },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1.f },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1024.f },
                 { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0.5f }
             };
         };
@@ -108,6 +108,8 @@ namespace Myu::VulkanWrapper::Utils
         DescriptorAllocator* alloc;
     };
 
+    VkShaderModule   createShaderModule(const VkDevice& device, const std::vector<char>& code);
+
     VkDescriptorPool createDescPool(VkDevice device, const DescriptorAllocator::PoolSizes& poolSizes, int count, VkDescriptorPoolCreateFlags flags);
 
     std::string errorString(VkResult errorCode);
@@ -131,9 +133,11 @@ namespace Myu::VulkanWrapper::Utils
 
     void createBuffer(const VulkanDevice& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* pBuffer, VkDeviceMemory* pBufferMemory);
 
+    void createStorageBuffer(const VulkanDevice& device, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage, VkBuffer* pBuffer, VkDeviceMemory* pMemory);
+
     void copyBuffer(const VulkanDevice& device,VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-    void updateUniformBuffer(VkDevice device, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat);
+    void updateUniformBuffer(VkDevice device, VkDeviceMemory& uniformBuffersMemory, UniformBufferObject ubo);
 
     void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet);
 }
