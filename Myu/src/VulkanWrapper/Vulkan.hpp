@@ -81,11 +81,36 @@ namespace Myu::VulkanWrapper
         glm::vec2 offset;
         alignas(16) glm::vec3 color;
     };
+    struct PointLight
+    {
+        alignas(16) glm::vec4 position;  // w is onoff
+        alignas(16) glm::vec4 color;     // w is intensity
+    };
+
+    struct GlobalLight
+    {
+        alignas(16) glm::vec4 position;  // w is onoff
+        alignas(16) glm::vec4 color;     // w is intensity
+    };
+
+    struct Material
+    {
+        alignas(4) float Ns;       // ¹Ý»çÀ²
+        alignas(4) float Ni;       // ±¼Àý·ü
+        alignas(16) glm::vec3 Ka;  // ambient
+        alignas(16) glm::vec3 Kd;  // diffuse
+        alignas(16) glm::vec3 Ks;  // specular
+        alignas(4) float d;        // Åõ¸íµµ
+    };
     struct UniformBufferObject
     {
         alignas(16) glm::mat4 model;
         alignas(16) glm::mat4 view;
         alignas(16) glm::mat4 proj;
+        alignas(16) glm::vec4 effects[10];
+        PointLight  pLight[10];
+        GlobalLight gLight[10];
+        Material    mat{1.0};
     };
     struct QueueFamilyIndices
     {
