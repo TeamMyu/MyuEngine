@@ -211,6 +211,8 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.stageFlags = stageFlags;
         newBinding.binding = bindings.size();
 
+        std::cout << "buf bindings :" << bindings.size() << std::endl;
+
         bindings.push_back(newBinding);
 
         VkWriteDescriptorSet newWrite{};
@@ -236,7 +238,7 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.pImmutableSamplers = nullptr;
         newBinding.stageFlags = stageFlags;
         newBinding.binding = bindings.size();
-
+        std::cout << "img bindings :" << bindings.size() << std::endl;
         bindings.push_back(newBinding);
 
         VkWriteDescriptorSet newWrite{};

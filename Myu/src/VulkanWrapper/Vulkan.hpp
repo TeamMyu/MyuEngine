@@ -41,6 +41,14 @@ namespace Myu::VulkanWrapper
 {
     const int MAX_FRAMES_IN_FLIGHT = 2;
 
+    struct VertexObject
+    {
+        alignas(16) glm::vec3 position{};
+        alignas(16) glm::vec3 color{};
+        alignas(16) glm::vec3 normal{};
+        alignas(16) glm::vec2 uv{};
+    };
+
     struct Vertex
     {
         glm::vec3 position{};
@@ -115,8 +123,9 @@ namespace Myu::VulkanWrapper
     {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily;
+        std::optional<uint32_t> computeFamily;
 
-        bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
+        bool isComplete() { return graphicsFamily.has_value() && presentFamily.has_value() && computeFamily.has_value(); }
     };
 
     // clang-format off

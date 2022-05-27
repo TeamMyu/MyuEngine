@@ -49,16 +49,6 @@ namespace Myu
 
     void Model::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, Myu::VulkanWrapper::UniformBufferObject ubo)
     {
-        for (auto& mesh : mMeshes)
-        {
-            if (mesh.material != nullptr)
-            {
-                VulkanWrapper::Utils::updateUniformBuffer(m_rVulkanDevice.GetVkLogicalDevice(), mesh.getMaterial().getUniformBufferMemory(), ubo);
-                VulkanWrapper::Utils::bindDescriptorSet(commandBuffer, pipelineLayout, mesh.getMaterial().getDescriptorSet());
-            }
-
-            vkCmdDraw(commandBuffer, 0, 1, 0, 0);
-        }
     }
 
     void Model::loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices)

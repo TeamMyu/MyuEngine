@@ -30,9 +30,9 @@ namespace Myu::VulkanWrapper::Utils
                 { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1.f },
                 { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1.f },
                 { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2.f },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2.f },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3.f },
                 { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1.f },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1024.f },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1.f },
                 { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0.5f }
             };
         };
@@ -103,7 +103,6 @@ namespace Myu::VulkanWrapper::Utils
         std::vector<VkWriteDescriptorSet> writes;
         std::vector<VkDescriptorSetLayoutBinding> bindings;
         
-
         DescriptorLayoutCache* cache;
         DescriptorAllocator* alloc;
     };

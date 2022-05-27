@@ -6,10 +6,19 @@
 #include "../VulkanWrapper/VulkanTexture.hpp"
 #include "../VulkanWrapper/VulkanInitializer.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 VkPipelineLayout      pipelineLayout;
+
 VkPipelineLayout      computePipeLayout;
 VkDescriptorSetLayout computeDescLayout;
 VkDescriptorSet       computeDescSet;
+VkBuffer              storageBuffer;
+VkDeviceMemory        storageBufferMemory;
+VkBuffer              storageBuffer2;
+VkDeviceMemory        storageBufferMemory2;
+VkBuffer              storageBuffer3;
+VkDeviceMemory        storageBufferMemory3;
 
 VkPipeline graphicsPipeline;
 
@@ -120,62 +129,35 @@ namespace Myu
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), fragShaderModule, nullptr);
         }*/
         {
-            
-            auto storageBinding  = VulkanWrapper::createDescriptorSetLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 1);
-            auto storageBinding2 = VulkanWrapper::createDescriptorSetLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 1);
-
-            std::vector<VkDescriptorSetLayoutBinding> bindings{storageBinding2, storageBinding};
-
-            VulkanWrapper::createDescriptorSetLayout(m_Device.GetVkLogicalDevice(), bindings, &computeDescLayout);
-
             VulkanWrapper::Utils::DescriptorAllocator   descAllocator;
             VulkanWrapper::Utils::DescriptorLayoutCache descLayoutCache;
             descAllocator.init(m_Device.GetVkLogicalDevice());
             descLayoutCache.init(m_Device.GetVkLogicalDevice());
 
-            VkBuffer       storageBuffer;
-            VkDeviceMemory storageBufferMemory;
-            VkBuffer       storageBuffer2;
-            VkDeviceMemory storageBufferMemory2;
-
-            VulkanWrapper::Utils::createStorageBuffer(m_Device, 16, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &storageBuffer, &storageBufferMemory);
-            VulkanWrapper::Utils::createStorageBuffer(m_Device, 16, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &storageBuffer2, &storageBufferMemory2);
+            VulkanWrapper::Utils::createStorageBuffer(m_Device, sizeof(VulkanWrapper::UniformBufferObject), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &storageBuffer, &storageBufferMemory);
+            VulkanWrapper::Utils::createStorageBuffer(m_Device, sizeof(VulkanWrapper::VertexObject), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &storageBuffer2, &storageBufferMemory2);
+            VulkanWrapper::Utils::createStorageBuffer(m_Device, sizeof(glm::mat4), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &storageBuffer3, &storageBufferMemory3);
 
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = storageBuffer;
             bufferInfo.offset = 0;
-            bufferInfo.range  = 16;
+            bufferInfo.range  = sizeof(VulkanWrapper::UniformBufferObject);
 
             VkDescriptorBufferInfo bufferInfo2{};
             bufferInfo2.buffer = storageBuffer2;
             bufferInfo2.offset = 0;
-            bufferInfo2.range  = 16;
+            bufferInfo2.range  = sizeof(VulkanWrapper::VertexObject);
 
-            auto builder = VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
-                               .bindBuffer(&bufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
-                               .bindBuffer(&bufferInfo2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
-                               .build(computeDescSet, computeDescLayout);
-
-            VkDescriptorSetAllocateInfo allocInfo{};
-            allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.descriptorPool     = m_Device.GetVkDescriptorPool();
-            allocInfo.descriptorSetCount = 1;
-            allocInfo.pSetLayouts        = &computeDescLayout;
-
-            if (vkAllocateDescriptorSets(m_Device.GetVkLogicalDevice(), &allocInfo, &computeDescSet) != VK_SUCCESS)
-            {
-                throw std::runtime_error("failed to allocate descriptor sets!");
-            }
-
-            VkWriteDescriptorSet descriptorWrite{};
-            descriptorWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet          = computeDescSet;
-            descriptorWrite.dstBinding      = 0;
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo     = &bufferInfo;
-            vkUpdateDescriptorSets(m_Device.GetVkLogicalDevice(), 1, &descriptorWrite, 0, nullptr);
+            VkDescriptorBufferInfo bufferInfo3{};
+            bufferInfo3.buffer = storageBuffer3;
+            bufferInfo3.offset = 0;
+            bufferInfo3.range  = sizeof(glm::mat4);
+           
+            VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
+            .bindBuffer(&bufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+            .bindBuffer(&bufferInfo2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+            .bindBuffer(&bufferInfo3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT)
+            .build(computeDescSet, computeDescLayout);
 
             VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &computeDescLayout, &computePipeLayout);
 
@@ -201,6 +183,13 @@ namespace Myu
             m_pPostPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
 
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), compShaderModule, nullptr);
+
+            VkCommandBuffer commandbuf = VulkanWrapper::beginSingleTimeCommands(m_Device.GetVkLogicalDevice(), m_Device.GetVkCommandPool());
+            vkCmdBindPipeline(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, m_pPostPipe->GetVulkanPipeline());
+            vkCmdBindDescriptorSets(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeLayout, 0, 1, &computeDescSet, 0, 0);
+            vkCmdDispatch(commandbuf, 1, 0, 1);
+            VulkanWrapper::endSingleTimeCommands(m_Device.GetVkLogicalDevice(), commandbuf, m_Device.GetVkGraphicsQueue(), m_Device.GetVkCommandPool());
+
         }
         // create texture relevent resources
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
@@ -282,6 +271,13 @@ namespace Myu
         }
 
         m_Renderer.EndDraw();
+
+        void*    bufferData;
+        result = vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3, 0, VK_WHOLE_SIZE, 0, &bufferData);
+        std::cout << result << '\n';
+        //glm::vec4 recivedData = glm::make_vec4(bufferData);
+        std::cout << static_cast<char*>(bufferData) << '\n';
+        vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3);
     }
 
     void Application::loadGameObjects()
@@ -315,7 +311,37 @@ namespace Myu
             // FIMXE: HACK
             go.model->bind(commandBuffer, pipelineLayout, ubo);
 
-            //go.model->draw(commandBuffer);
+            /*
+            VkBufferMemoryBarrier bufferBarrier = vks::initializers::bufferMemoryBarrier();
+            bufferBarrier.buffer                = indirectCommandsBuffer.buffer;
+            bufferBarrier.size                  = indirectCommandsBuffer.descriptor.range;
+            bufferBarrier.srcAccessMask         = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+            bufferBarrier.dstAccessMask         = VK_ACCESS_SHADER_WRITE_BIT;
+            bufferBarrier.srcQueueFamilyIndex   = vulkanDevice->queueFamilyIndices.graphics;
+            bufferBarrier.dstQueueFamilyIndex   = vulkanDevice->queueFamilyIndices.compute;
+
+            vkCmdPipelineBarrier(
+                compute.commandBuffer,
+                VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                VK_FLAGS_NONE,
+                0,
+                nullptr,
+                1,
+                &bufferBarrier,
+                0,
+                nullptr);
+            */
+
+            void* data;
+            vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory, 0, sizeof(ubo), 0, &data);
+            memcpy(data, &ubo, sizeof(ubo));
+            vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory);
+
+            Myu::VulkanWrapper::VertexObject v{};
+            vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2, 0, sizeof(v), 0, &data);
+            memcpy(data, &v, sizeof(v));
+            vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2);
         }
     }
 }  // namespace Myu

@@ -1,16 +1,56 @@
 #version 450
 
-layout (local_size_x = 16, local_size_y = 16) in;
+//layout (local_size_x = 16, local_size_y = 16) in;
 //layout (binding = 0, rgba8) uniform readonly image2D inputImage;
 //layout (binding = 1, rgba8) uniform image2D resultImage;
+struct PointLight {
+    vec4 position; // w is onoff
+    vec4 color; // w is intensity
+};
+
+struct GlobalLight {
+    vec4 position; // w is onoff
+    vec4 color; // w is intensity
+};
+
+struct Material {
+    float Ns; // ¹Ý»çÀ²
+    float Ni; // ±¼Àý·ü
+    vec3 Ka; // ambient
+    vec3 Kd; // diffuse
+    vec3 Ks; // specular
+    float d; // Åõ¸íµµ
+};
+
+layout(local_size_x = 1) in;
+
+layout(binding = 0) readonly buffer UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+    vec4 effects[10]; // 0 : effect type, 1 : effect intensity, 2~3 : config value
+    PointLight pLight[10];
+    GlobalLight gLight[10];
+    Material mat;
+} ubo;
+
+layout(binding = 1) readonly buffer Vertex {
+    vec3 position;
+    vec3 color;
+    vec3 normal;
+    vec2 uv;
+} v;
+
+layout(binding = 2) buffer FragColor {
+    mat4 fragColor;
+} o;
 
 void main()
 {	
 	// Fetch neighbouring texels
-	//vec3 rgb = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;
-
-									
+	//vec3 rgb = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y)).rgb;			
 	//vec4 res = vec4(0.3 * rgb, 1.0);
-
 	//imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), res);
+
+    o.fragColor = mat4(gl_GlobalInvocationID.x + 0.5);
 }

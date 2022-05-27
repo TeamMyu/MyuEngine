@@ -55,8 +55,9 @@ namespace Myu
                        .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
         for (VulkanWrapper::VulkanTexture vkwTexture : mTextures)
         {
+            std::cout << "mat bindings :" << std::endl;
             auto TextureInfo = VulkanWrapper::Utils::createDescImageInfo(vkwTexture.getImageView(), vkwTexture.getSampler());  // imageview 는 개별, sampler는 공유 가능
-            builder.bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT);         // 버텍스 세이더에 바인딩
+            builder = builder.bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT);     // 버텍스 세이더에 바인딩
         }
 
         builder.build(mDescriptorSet, mDescriptorLayout);

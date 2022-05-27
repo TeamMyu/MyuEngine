@@ -42,11 +42,13 @@ namespace Myu::VulkanWrapper
 
     void createPipelineLayout(VkDevice device, VkDescriptorSetLayout *descriptorSetLayout, VkPipelineLayout *pipelineLayout)
     {
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{*descriptorSetLayout};
+        std::cout << "dsl size" << descriptorSetLayouts.size() << std::endl;
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts    = descriptorSetLayout;
-
+        pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+        pipelineLayoutInfo.pSetLayouts    = descriptorSetLayouts.data();
+   
         if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, pipelineLayout) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create pipeline layout!");
