@@ -40,6 +40,7 @@ layout(location = 2) in vec3 inNormal;
 layout(location = 3) in vec2 inUV;
 
 layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec2 fragCoord;
 
 void main() {
     vec3 inPosition_w = (ubo.model * vec4(inPosition, 1.0)).xyz; 
@@ -49,11 +50,12 @@ void main() {
     vec3 viewDirection = (cameraPos_w - inPosition_w);
     float viewDistance = normalize(dot(viewDirection, viewDirection));
 
-    vec3 offset = inNormal * 0.03;
+    vec3 offset = inNormal * 0.6;
     offset *= viewDistance;
 
     fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    
+    fragCoord = inUV;
+
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition+offset, 1.0);
     
 }

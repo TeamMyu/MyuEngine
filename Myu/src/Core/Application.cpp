@@ -90,7 +90,16 @@ namespace Myu
 
             pipelineSpec.shaderStages.push_back(fragShaderStageInfo);
             pipelineSpec.shaderStages.push_back(vertShaderStageInfo);
-
+            pipelineSpec.rasterizationInfo.cullMode         = VK_CULL_MODE_NONE;
+            pipelineSpec.depthStencilInfo.stencilTestEnable = VK_TRUE;
+            pipelineSpec.depthStencilInfo.back.compareOp    = VK_COMPARE_OP_ALWAYS;
+            pipelineSpec.depthStencilInfo.back.failOp       = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.depthFailOp  = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.passOp       = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.compareMask  = 0xff;
+            pipelineSpec.depthStencilInfo.back.writeMask    = 0xff;
+            pipelineSpec.depthStencilInfo.back.reference    = 1;
+            pipelineSpec.depthStencilInfo.front             = pipelineSpec.depthStencilInfo.back;
             pipelineSpec.pipelineLayout = pipelineLayout;
 
             m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
@@ -103,7 +112,6 @@ namespace Myu
             /*
             pipelineSpec.vertFilepath                       = "shaders/texture.vert.spv";
             pipelineSpec.fragFilepath                       = "shaders/texture.frag.spv";
-
 
             pipelineSpec.rasterizationInfo.cullMode         = VK_CULL_MODE_NONE;
             pipelineSpec.depthStencilInfo.stencilTestEnable = VK_TRUE;
@@ -316,9 +324,12 @@ namespace Myu
         //        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
         //        gameObjects.push_back(std::move(testGO));
 
-        auto model2                = std::make_shared<Model>(m_Device, "models/untitled.obj");
+        //auto model2                = std::make_shared<Model>(m_Device, "models/untitled.obj");
+        auto model2  = std::make_shared<Model>(m_Device, "models/sphere.obj");
         auto testGO2               = GameObject::createGameObject();
-        testGO2.transform.scale    = glm::vec3(0.1f);
+        //testGO2.transform.scale    = glm::vec3(0.1f);
+        testGO2.transform.scale    = glm::vec3(0.01f);
+        testGO2.transform.rotation = glm::vec3(0.0, 3.14, 0.0);
         testGO2.model              = model2;
         testGO2.transform.position = glm::vec3(0.f, -0.5f, 0.f);
         gameObjects.push_back(std::move(testGO2));
@@ -327,7 +338,7 @@ namespace Myu
         auto testGO3               = GameObject::createGameObject();
         testGO3.model              = model3;
         testGO3.transform.scale    = glm::vec3(0.005f);
-        testGO3.transform.position = glm::vec3(-0.0, 1.0, 2.0);
+        testGO3.transform.position = glm::vec3(-0.0, 2.0, -2.0);
         gameObjects.push_back(std::move(testGO3));
     }
 
@@ -341,11 +352,11 @@ namespace Myu
             ubo.proj               = camera.getProjection();
             
             if (go.transform.scale == glm::vec3(0.005f)) // light
-                ubo.pLight[0].position = glm::vec4(glm::vec3(-0.0, 1.0, 2.0), 2.0);
+                ubo.gLight[0].position = glm::vec4(glm::vec3(-0.0, 2.0, -2.0), 2.0);
             else
-                ubo.pLight[0].position = glm::vec4(glm::vec3(-0.0, 1.0, 2.0), 1.0);
+                ubo.gLight[0].position = glm::vec4(glm::vec3(-0.0, 2.0, -2.0), 1.0);
 
-            ubo.pLight[0].color = glm::vec4(glm::vec3(0.25, 0.75, 1.0), 1.0);
+            ubo.gLight[0].color = glm::vec4(glm::vec3(1.0, 1.0, 1.0), 0.3);
             // FIMXE: HACK
 
             //m_pOutlinePipe->bind(commandBuffer);
