@@ -98,9 +98,29 @@ namespace Myu
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), fragShaderModule, nullptr);
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), vertShaderModule, nullptr);
         }
-        /*{
-            auto vertShaderCode = Utils::readFile("shaders/specular.vert.spv");
-            auto fragShaderCode = Utils::readFile("shaders/specular.frag.spv");
+        {  // new outline_pipeline
+
+            /*
+            pipelineSpec.vertFilepath                       = "shaders/texture.vert.spv";
+            pipelineSpec.fragFilepath                       = "shaders/texture.frag.spv";
+
+
+            pipelineSpec.rasterizationInfo.cullMode         = VK_CULL_MODE_NONE;
+            pipelineSpec.depthStencilInfo.stencilTestEnable = VK_TRUE;
+            pipelineSpec.depthStencilInfo.back.compareOp    = VK_COMPARE_OP_ALWAYS;
+            pipelineSpec.depthStencilInfo.back.failOp       = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.depthFailOp  = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.passOp       = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.back.compareMask  = 0xff;
+            pipelineSpec.depthStencilInfo.back.writeMask    = 0xff;
+            pipelineSpec.depthStencilInfo.back.reference    = 1;
+            pipelineSpec.depthStencilInfo.front             = pipelineSpec.depthStencilInfo.back;
+
+            pipeline_stencil = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+            */
+
+            auto vertShaderCode = Utils::readFile("shaders/outline.vert.spv");
+            auto fragShaderCode = Utils::readFile("shaders/outline.frag.spv");
 
             VkShaderModule vertShaderModule =
                 VulkanWrapper::Utils::createShaderModule(m_Device.GetVkLogicalDevice(), vertShaderCode);
@@ -123,11 +143,18 @@ namespace Myu
             pipelineSpec.shaderStages.push_back(fragShaderStageInfo);
             pipelineSpec.shaderStages.push_back(vertShaderStageInfo);
 
-            m_pSpecularPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+            pipelineSpec.depthStencilInfo.back.compareOp   = VK_COMPARE_OP_NOT_EQUAL;
+            pipelineSpec.depthStencilInfo.back.failOp      = VK_STENCIL_OP_KEEP;
+            pipelineSpec.depthStencilInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
+            pipelineSpec.depthStencilInfo.back.passOp      = VK_STENCIL_OP_REPLACE;
+            pipelineSpec.depthStencilInfo.front            = pipelineSpec.depthStencilInfo.back;
+            pipelineSpec.depthStencilInfo.depthTestEnable  = VK_FALSE;
 
-            vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), vertShaderModule, nullptr);
+            m_pOutlinePipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), fragShaderModule, nullptr);
-        }*/
+            vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), vertShaderModule, nullptr);
+        }
         {
             VulkanWrapper::Utils::DescriptorAllocator   descAllocator;
             VulkanWrapper::Utils::DescriptorLayoutCache descLayoutCache;
@@ -184,11 +211,11 @@ namespace Myu
 
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), compShaderModule, nullptr);
 
-            VkCommandBuffer commandbuf = VulkanWrapper::beginSingleTimeCommands(m_Device.GetVkLogicalDevice(), m_Device.GetVkCommandPool());
-            vkCmdBindPipeline(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, m_pPostPipe->GetVulkanPipeline());
-            vkCmdBindDescriptorSets(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeLayout, 0, 1, &computeDescSet, 0, 0);
-            vkCmdDispatch(commandbuf, 1, 0, 1);
-            VulkanWrapper::endSingleTimeCommands(m_Device.GetVkLogicalDevice(), commandbuf, m_Device.GetVkGraphicsQueue(), m_Device.GetVkCommandPool());
+            //VkCommandBuffer commandbuf = VulkanWrapper::beginSingleTimeCommands(m_Device.GetVkLogicalDevice(), m_Device.GetVkCommandPool());
+            //vkCmdBindPipeline(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, m_pPostPipe->GetVulkanPipeline());
+            //vkCmdBindDescriptorSets(commandbuf, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeLayout, 0, 1, &computeDescSet, 0, 0);
+            //vkCmdDispatch(commandbuf, 1, 0, 1);
+            //VulkanWrapper::endSingleTimeCommands(m_Device.GetVkLogicalDevice(), commandbuf, m_Device.GetVkGraphicsQueue(), m_Device.GetVkCommandPool());
 
         }
         // create texture relevent resources
@@ -271,13 +298,14 @@ namespace Myu
         }
 
         m_Renderer.EndDraw();
-
+        /*
         void*    bufferData;
         result = vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3, 0, VK_WHOLE_SIZE, 0, &bufferData);
         std::cout << result << '\n';
         //glm::vec4 recivedData = glm::make_vec4(bufferData);
         std::cout << static_cast<char*>(bufferData) << '\n';
         vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3);
+        */
     }
 
     void Application::loadGameObjects()
@@ -288,28 +316,44 @@ namespace Myu
         //        testGO.transform.position = glm::vec3(0.5f, -0.5f, 0.f);
         //        gameObjects.push_back(std::move(testGO));
 
-        auto model2                = std::make_shared<Model>(m_Device, "models/paimon.obj");
+        auto model2                = std::make_shared<Model>(m_Device, "models/untitled.obj");
         auto testGO2               = GameObject::createGameObject();
+        testGO2.transform.scale    = glm::vec3(0.1f);
         testGO2.model              = model2;
-        testGO2.transform.position = glm::vec3(0.f, 0.f, 0.f);
+        testGO2.transform.position = glm::vec3(0.f, -0.5f, 0.f);
         gameObjects.push_back(std::move(testGO2));
+
+        auto model3                = std::make_shared<Model>(m_Device, "models/sphere.obj"); // light obj
+        auto testGO3               = GameObject::createGameObject();
+        testGO3.model              = model3;
+        testGO3.transform.scale    = glm::vec3(0.005f);
+        testGO3.transform.position = glm::vec3(-0.0, 1.0, 2.0);
+        gameObjects.push_back(std::move(testGO3));
     }
 
     void Application::renderGameObjects(VkCommandBuffer commandBuffer)
     {
-        m_pPipeline->bind(commandBuffer);
-
         for (auto& go : gameObjects)
         {
             Myu::VulkanWrapper::UniformBufferObject ubo{};
-            go.transform.scale     = glm::vec3(0.1f);
             ubo.model              = go.transform.toMat4();
             ubo.view               = camera.getView();
             ubo.proj               = camera.getProjection();
-            ubo.pLight[0].position = glm::vec4(glm::vec3(-0.0, -1.0, -0.5), 1.0);
-            ubo.pLight[0].color    = glm::vec4(glm::vec3(0.25, 0.75, 1.0), 1.0);
+            
+            if (go.transform.scale == glm::vec3(0.005f)) // light
+                ubo.pLight[0].position = glm::vec4(glm::vec3(-0.0, 1.0, 2.0), 2.0);
+            else
+                ubo.pLight[0].position = glm::vec4(glm::vec3(-0.0, 1.0, 2.0), 1.0);
+
+            ubo.pLight[0].color = glm::vec4(glm::vec3(0.25, 0.75, 1.0), 1.0);
             // FIMXE: HACK
+
+            //m_pOutlinePipe->bind(commandBuffer);
+            //go.model->bind(commandBuffer, pipelineLayout, ubo);
+
+            m_pPipeline->bind(commandBuffer);
             go.model->bind(commandBuffer, pipelineLayout, ubo);
+
 
             /*
             VkBufferMemoryBarrier bufferBarrier = vks::initializers::bufferMemoryBarrier();
@@ -331,7 +375,7 @@ namespace Myu
                 &bufferBarrier,
                 0,
                 nullptr);
-            */
+            
 
             void* data;
             vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory, 0, sizeof(ubo), 0, &data);
@@ -342,6 +386,7 @@ namespace Myu
             vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2, 0, sizeof(v), 0, &data);
             memcpy(data, &v, sizeof(v));
             vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2);
+            */
         }
     }
 }  // namespace Myu

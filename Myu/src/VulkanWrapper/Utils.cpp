@@ -211,8 +211,6 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.stageFlags = stageFlags;
         newBinding.binding = bindings.size();
 
-        std::cout << "buf bindings :" << bindings.size() << std::endl;
-
         bindings.push_back(newBinding);
 
         VkWriteDescriptorSet newWrite{};
@@ -238,7 +236,7 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.pImmutableSamplers = nullptr;
         newBinding.stageFlags = stageFlags;
         newBinding.binding = bindings.size();
-        std::cout << "img bindings :" << bindings.size() << std::endl;
+
         bindings.push_back(newBinding);
 
         VkWriteDescriptorSet newWrite{};
@@ -329,7 +327,7 @@ namespace Myu::VulkanWrapper::Utils
         {
             //pack the binding data into a single int64. Not fully correct but its ok
             size_t binding_hash = b.binding | b.descriptorType << 8 | b.descriptorCount << 16 | b.stageFlags << 24;
-
+            
             //shuffle the packed binding data and xor it with the main hash
             result ^= hash<size_t>()(binding_hash);
         }

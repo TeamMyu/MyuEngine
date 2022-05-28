@@ -42,7 +42,7 @@ namespace Myu
                 VulkanWrapper::Utils::updateUniformBuffer(m_rVulkanDevice.GetVkLogicalDevice(), mesh.getMaterial().getUniformBufferMemory(), ubo);
                 VulkanWrapper::Utils::bindDescriptorSet(commandBuffer, pipelineLayout, mesh.getMaterial().getDescriptorSet());
             }
-            
+
             vkCmdDrawIndexed(commandBuffer, mesh.getIndicesSize(), 1, 0, 0, 0);
         }
     }
@@ -67,15 +67,24 @@ namespace Myu
         vertices.clear();
         indices.clear();
         
-        int counter = 0;
-        std::cout << "shapes size: " << shapes.size() << std::endl;
         std::cout << "material size: " << materials.size() << std::endl;
+
+        std::vector<std::shared_ptr<Material>> Mats;
+        for (const auto &material : materials) // 머테리얼 벡터의 인덱스와 shape이 사용하는 머테리얼 인덱스가 다를 수 있음
+        {
+            Mats.push_back(std::make_shared<Material>(&m_rVulkanDevice, material));
+        }
+
+        std::cout << "shapes size: " << shapes.size() << std::endl;
         for (const auto &shape : shapes)
         {
             auto mesh = Mesh();
-            
-            auto mat = std::make_shared<Material>(&m_rVulkanDevice, materials[counter++]);
-            mesh.material = mat;
+            auto usedMatIndex = shape.mesh.material_ids[0]; // shape이 복수의 머테리얼을 사용할 수도 있음
+
+            if (usedMatIndex != -1)
+                mesh.material = Mats.data()[usedMatIndex];
+            else
+                mesh.material = std::make_shared<Material>(&m_rVulkanDevice, tinyobj::material_t{});  // 유니폼버퍼는 필수 할당이기때문에 빈 머테리얼을 보내줌
             
             mesh.init(m_rVulkanDevice, shape.mesh.indices, attrib);
             mMeshes.push_back(mesh);

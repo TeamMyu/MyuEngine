@@ -6,58 +6,54 @@ namespace Myu
     {
         // create texture
         //FIXME: temp
-        std::string diffuseTexname = "textures/" + matInfo.diffuse_texname;
-        std::string ambientTexname = "textures/" + matInfo.ambient_texname;
+        std::string diffuseTexname  = "textures/" + matInfo.diffuse_texname;
+        std::string ambientTexname  = "textures/" + matInfo.ambient_texname;
         std::string specularTexname = "textures/" + matInfo.specular_texname;
-        std::string normalTexname = "textures/" + matInfo.normal_texname;
+        std::string normalTexname   = "textures/" + matInfo.normal_texname;
 
         VulkanWrapper::VulkanTexture diffuseTexture;
         VulkanWrapper::VulkanTexture ambientTexture;
         VulkanWrapper::VulkanTexture specularTexture;
         VulkanWrapper::VulkanTexture normalTexture;
 
-        if (!matInfo.diffuse_texname.empty())
-        {
-            diffuseTexture.loadFromFile(device, (const char*)diffuseTexname.c_str());
-            mTextures.push_back(diffuseTexture);
-        }
+        diffuseTexture.loadFromFile(device, (const char*)diffuseTexname.c_str());
+        mTextures.push_back(diffuseTexture);
 
-        if (!matInfo.ambient_texname.empty())
-        {
-            ambientTexture.loadFromFile(device, (const char*)ambientTexname.c_str());
-            mTextures.push_back(ambientTexture);
-        }
+        ambientTexture.loadFromFile(device, (const char*)ambientTexname.c_str());
+        mTextures.push_back(ambientTexture);
 
-        if (!matInfo.specular_texname.empty())
-        {
-            specularTexture.loadFromFile(device, (const char*)specularTexname.c_str());
-            mTextures.push_back(specularTexture);
-        }
+        specularTexture.loadFromFile(device, (const char*)specularTexname.c_str());
+        mTextures.push_back(specularTexture);
 
-        if (!matInfo.normal_texname.empty())
-        {
-            normalTexture.loadFromFile(device, (const char*)normalTexname.c_str());
-            mTextures.push_back(normalTexture);
-        }
+        normalTexture.loadFromFile(device, (const char*)normalTexname.c_str());
+        mTextures.push_back(normalTexture);
 
         // create uniform buffer
         VulkanWrapper::Utils::createUniformBuffer(*device, &mUniformBuffer, &mUniformBufferMemory);
-        
+
         //FIXME: optimize this
-        VulkanWrapper::Utils::DescriptorAllocator descAllocator;
+        VulkanWrapper::Utils::DescriptorAllocator   descAllocator;
         VulkanWrapper::Utils::DescriptorLayoutCache descLayoutCache;
         descAllocator.init(device->GetVkLogicalDevice());
         descLayoutCache.init(device->GetVkLogicalDevice());
-        
+
         auto uniformBufferInfo = VulkanWrapper::Utils::createDescBufferInfo(mUniformBuffer, 0, sizeof(VulkanWrapper::UniformBufferObject));
 
+        auto TextureInfo  = VulkanWrapper::Utils::createDescImageInfo(mTextures[0].getImageView(), mTextures[0].getSampler());
+        auto TextureInfo2 = VulkanWrapper::Utils::createDescImageInfo(mTextures[1].getImageView(), mTextures[1].getSampler());
+        auto TextureInfo3 = VulkanWrapper::Utils::createDescImageInfo(mTextures[2].getImageView(), mTextures[2].getSampler());
+        auto TextureInfo4 = VulkanWrapper::Utils::createDescImageInfo(mTextures[3].getImageView(), mTextures[3].getSampler());
+
         auto builder = VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
-                       .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-        for (VulkanWrapper::VulkanTexture vkwTexture : mTextures)
+                           .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                           .bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+                           .bindImage(&TextureInfo2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+                           .bindImage(&TextureInfo3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+                           .bindImage(&TextureInfo4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT);
+        for (auto mTexture : mTextures)
         {
-            std::cout << "mat bindings :" << std::endl;
-            auto TextureInfo = VulkanWrapper::Utils::createDescImageInfo(vkwTexture.getImageView(), vkwTexture.getSampler());  // imageview 는 개별, sampler는 공유 가능
-            builder = builder.bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT);     // 버텍스 세이더에 바인딩
+              // imageview 는 개별, sampler는 공유 가능
+            //builder                                                                                                        // 버텍스 세이더에 바인딩
         }
 
         builder.build(mDescriptorSet, mDescriptorLayout);
@@ -67,4 +63,4 @@ namespace Myu
     {
     }
 
-}
+}  // namespace Myu

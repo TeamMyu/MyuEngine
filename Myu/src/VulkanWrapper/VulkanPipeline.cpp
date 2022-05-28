@@ -121,11 +121,11 @@ namespace Myu::VulkanWrapper
         this->colorBlendAttachment.colorWriteMask =
             VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
             VK_COLOR_COMPONENT_A_BIT;
-        this->colorBlendAttachment.blendEnable = VK_FALSE;
+        this->colorBlendAttachment.blendEnable = VK_TRUE;
         this->colorBlendAttachment.srcColorBlendFactor =
-            VK_BLEND_FACTOR_ONE;  // Optional
+            VK_BLEND_FACTOR_SRC_ALPHA;  // Optional
         this->colorBlendAttachment.dstColorBlendFactor =
-            VK_BLEND_FACTOR_ZERO;                                   // Optional
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;                                   // Optional
         this->colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;  // Optional
         this->colorBlendAttachment.srcAlphaBlendFactor =
             VK_BLEND_FACTOR_ONE;  // Optional

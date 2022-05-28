@@ -55,7 +55,7 @@ namespace Myu
 
     private:
         VulkanWrapper::VulkanPipeline* m_pPipeline;
-        VulkanWrapper::VulkanPipeline* m_pSpecularPipe;
+        VulkanWrapper::VulkanPipeline* m_pOutlinePipe;
         VulkanWrapper::VulkanPipeline* m_pPostPipe;
         
         std::vector<GameObject> gameObjects;

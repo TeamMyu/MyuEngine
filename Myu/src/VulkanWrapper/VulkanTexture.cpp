@@ -28,13 +28,21 @@ namespace Myu::VulkanWrapper
         
         int texWidth, texHeight, texChannels;
         stbi_uc *pixels = stbi_load(filePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels)
         {
-            throw std::runtime_error("failed to load texture image!");
+            std::cout << "null image" << std::endl;
+            unsigned char aa[15]{0};
+            
+            stbi_uc nullImage = (stbi_uc)aa;
+            pixels            = &nullImage;
+            texWidth          = 4;
+            texHeight         = 4;
+            texChannels       = 1;
+            //throw std::runtime_error("failed to load texture image!");
         }
 
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         Utils::createBuffer(*device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
@@ -44,7 +52,8 @@ namespace Myu::VulkanWrapper
         memcpy(data, pixels, static_cast<size_t>(imageSize));
         vkUnmapMemory(mDevice->GetVkLogicalDevice(), stagingBufferMemory);
 
-        stbi_image_free(pixels);
+        if (imageSize != 64 || texChannels != 1) stbi_image_free(pixels);
+        
 
         createImage(mDevice->GetVkPhysicalDevice(), mDevice->GetVkLogicalDevice(), texWidth, texHeight,
                     VK_FORMAT_R8G8B8A8_SRGB,
