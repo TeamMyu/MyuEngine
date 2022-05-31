@@ -39,6 +39,8 @@ namespace Myu::VulkanWrapper
 
         std::vector<VkCommandBuffer> GetCommandBuffers() { return m_CommandBuffers; }
 
+        VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, bool begin);
+
     private:
         const std::vector<const char*> m_ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
         const std::vector<const char*> m_DeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};

@@ -266,7 +266,30 @@ namespace Myu::VulkanWrapper
             throw std::runtime_error("failed to allocate command buffers!");
         }
     }
+    VkCommandBuffer VulkanDevice::createCommandBuffer(VkCommandBufferLevel level, bool begin)
+    {
+        VkCommandBuffer             cmdBuf;
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool        = m_CommandPool;
+        allocInfo.level              = level;
+        allocInfo.commandBufferCount = 1;
 
+        if (vkAllocateCommandBuffers(m_Device, &allocInfo, &cmdBuf) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+
+        if (begin)
+        {
+            VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+            cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+            vkBeginCommandBuffer(cmdBuf, &cmdBufferBeginInfo);
+        }
+
+        return cmdBuf;
+    }
     void VulkanDevice::destroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT     debugMessenger,
                                                      const VkAllocationCallbacks* pAllocator)
     {
