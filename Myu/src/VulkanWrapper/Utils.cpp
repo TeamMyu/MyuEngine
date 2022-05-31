@@ -589,7 +589,7 @@ namespace Myu::VulkanWrapper::Utils
         createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pBuffer, pMemory);
     }
 
-    void createStorageBuffer(const VulkanDevice& device, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage, VkBuffer* pBuffer, VkDeviceMemory* pMemory)
+    void createStorageBuffer(const VulkanDevice& device, VkBuffer* pBuffer, VkDeviceMemory* pMemory, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage)
     {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -658,6 +658,7 @@ namespace Myu::VulkanWrapper::Utils
         endSingleTimeCommands(device, commandBuffer);
     }
 
+ 
     void updateUniformBuffer(VkDevice device, VkDeviceMemory& uniformBuffersMemory, UniformBufferObject ubo)
     {
         void *data;

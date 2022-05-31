@@ -132,8 +132,8 @@ namespace Myu::VulkanWrapper::Utils
 
     void createBuffer(const VulkanDevice& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* pBuffer, VkDeviceMemory* pBufferMemory);
 
-    void createStorageBuffer(const VulkanDevice& device, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage, VkBuffer* pBuffer, VkDeviceMemory* pMemory);
-
+    void createStorageBuffer(const VulkanDevice& device, VkBuffer* pBuffer, VkDeviceMemory* pMemory, size_t allocSize, VkBufferUsageFlags usage, VkBufferUsageFlags memoryUsage);
+    
     void copyBuffer(const VulkanDevice& device,VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
     void updateUniformBuffer(VkDevice device, VkDeviceMemory& uniformBuffersMemory, UniformBufferObject ubo);
