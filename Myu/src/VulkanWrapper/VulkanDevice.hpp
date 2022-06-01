@@ -32,6 +32,7 @@ namespace Myu::VulkanWrapper
         VkDevice                GetVkLogicalDevice() const { return m_Device; }
         VkQueue                 GetVkGraphicsQueue() const { return m_GraphicsQueue; }
         VkQueue                 GetVkPresentQueue() const { return m_PresentQueue; }
+        VkQueue                 GetVkComputeQueue() const { return m_ComputeQueue; }
         QueueFamilyIndices      GetQueueFamilyIndices() { return findQueueFamilies(m_PhysicalDevice); }
         SwapChainSupportDetails GetSwapChainDetails() { return querySwapChainSupport(m_PhysicalDevice); }
         VkCommandPool           GetVkCommandPool() const { return m_CommandPool; }
@@ -54,6 +55,7 @@ namespace Myu::VulkanWrapper
         VkDevice                     m_Device;
         VkQueue                      m_GraphicsQueue;
         VkQueue                      m_PresentQueue;
+        VkQueue                      m_ComputeQueue;
         QueueFamilyIndices           m_QueueFamilyIndices;
         VkDebugUtilsMessengerEXT     m_DebugMessenger;
         VkCommandPool                m_CommandPool;
