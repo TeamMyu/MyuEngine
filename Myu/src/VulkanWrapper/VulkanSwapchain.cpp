@@ -15,7 +15,8 @@ namespace Myu::VulkanWrapper
         createFrameBuffers();
         createSyncObjects();
     }
-
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
     VulkanSwapchain::VulkanSwapchain(VulkanDevice& vulkanDevice, VkExtent2D extent, std::shared_ptr<VulkanSwapchain> oldSwapChain) : m_rVulkanDevice{vulkanDevice}, m_SwapChainExtent{extent}
     {
         createSwapchain();
@@ -400,6 +401,8 @@ namespace Myu::VulkanWrapper
                                      VK_NULL_HANDLE,
                                      imageIndex);
     }
+
+    //VkResult VulkanSwapchain::SubmitQueue
 
     VkResult VulkanSwapchain::PresentQueue(std::vector<VkCommandBuffer>& currentBuffer, uint32_t imageIndex, uint32_t currentFrame)
     {

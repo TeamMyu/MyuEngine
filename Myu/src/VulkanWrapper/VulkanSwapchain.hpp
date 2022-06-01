@@ -36,6 +36,10 @@ namespace Myu::VulkanWrapper
             return swapChain.m_SwapChainImageFormat == m_SwapChainImageFormat;
         }
 
+        std::vector<VkSemaphore> imageAvailableSemaphores;
+        std::vector<VkSemaphore> renderFinishedSemaphores;
+        std::vector<VkFence>     inFlightFences;
+
     private:
         // Class Ref
         VulkanDevice& m_rVulkanDevice;
@@ -51,10 +55,6 @@ namespace Myu::VulkanWrapper
         VkImage        m_DepthImage;
         VkDeviceMemory m_DepthImageMemory;
         VkImageView    m_DepthImageView;
-
-        std::vector<VkSemaphore> imageAvailableSemaphores;
-        std::vector<VkSemaphore> renderFinishedSemaphores;
-        std::vector<VkFence>     inFlightFences;
 
         void createSwapchain();
         void createImageViews();
