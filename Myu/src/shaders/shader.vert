@@ -179,8 +179,7 @@ void main() {
     float RimIntensity = dot(rimLight, vec3(0.333, 0.333, 0.333));
     vec3 RimLut = texture(normalMap, vec2(clamp(RimIntensity, 0.01, 0.99))).rgb * RimIntensity;
 
-    fragColor = diffuseLut + SpecularLut + RimLut + rimLight;
-
+    fragColor = directionalLight;
 
     fragCoord = inUV;
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);

@@ -50,7 +50,7 @@ void main() {
     vec3 viewDirection = (cameraPos_w - inPosition_w);
     float viewDistance = normalize(dot(viewDirection, viewDirection));
 
-    vec3 offset = inNormal * 0.6;
+    vec3 offset = inNormal * 0.3;
     offset *= viewDistance;
 
     fragColor = vec4(0.0, 0.0, 0.0, 1.0);
