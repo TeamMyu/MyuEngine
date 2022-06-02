@@ -287,7 +287,38 @@ namespace Myu::VulkanWrapper
 
         return imageView;
     }
+    void createImage(VkPhysicalDevice      physicalDevice,
+                     VkDevice              device,
+                     VkImageCreateInfo imageInfo,
+                     VkMemoryPropertyFlags properties,
+                     VkImage& image,
+                     VkDeviceMemory& imageMemory)
+    {
+        if (!(imageInfo.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+        {
+            imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
 
+        if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create image!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize  = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(device, image, imageMemory, 0);
+    }
     void createImage(VkPhysicalDevice      physicalDevice,
                      VkDevice              device,
                      uint32_t              width,
@@ -313,6 +344,11 @@ namespace Myu::VulkanWrapper
         imageInfo.usage         = usage;
         imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+        
+        if (!(imageInfo.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+        {
+            imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
 
         if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
         {

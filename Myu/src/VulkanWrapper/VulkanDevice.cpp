@@ -14,6 +14,7 @@ namespace Myu::VulkanWrapper
         createCommandPool();
         createDescriptorPool();
         createCommandBuffers();
+        setupExtensions();
     }
 
     VulkanDevice::~VulkanDevice()
@@ -51,6 +52,8 @@ namespace Myu::VulkanWrapper
         createInfo.pApplicationInfo = &appInfo;
 
         auto extensions = getRequiredExtensions();
+
+        extensions.insert(extensions.end(), m_InstanceExtensions.begin(), m_InstanceExtensions.end());
 
         if (enableValidationLayers)
         {
@@ -229,7 +232,7 @@ namespace Myu::VulkanWrapper
 
     void VulkanDevice::createDescriptorPool()
     {
-        std::array<VkDescriptorPoolSize, 4> poolSizes{};
+        std::array<VkDescriptorPoolSize, 6> poolSizes{};
         poolSizes[0].type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         poolSizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -238,6 +241,10 @@ namespace Myu::VulkanWrapper
         poolSizes[2].descriptorCount = 2.0f;
         poolSizes[3].type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
         poolSizes[3].descriptorCount = 1.0f;
+        poolSizes[4].type            = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        poolSizes[4].descriptorCount = 100.0f;
+        poolSizes[5].type            = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        poolSizes[5].descriptorCount = 100.0f;
 
         // FIXME: maxsets are temp size
         // FIXME: must be changed gameObjects size
@@ -479,6 +486,19 @@ namespace Myu::VulkanWrapper
         if (enableValidationLayers) extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
         return extensions;
+    }
+
+    void VulkanDevice::setupExtensions()
+    {
+        vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(m_Device, "vkCmdPushDescriptorSetKHR");
+        vkGetPhysicalDeviceProperties2KHR = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2KHR>(vkGetInstanceProcAddr(m_Instance, "vkGetPhysicalDeviceProperties2KHR"));
+
+        VkPhysicalDevicePushDescriptorPropertiesKHR pushDescriptorProps{};
+        VkPhysicalDeviceProperties2KHR deviceProps2{};
+        pushDescriptorProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES_KHR;
+        deviceProps2.sType        = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+        deviceProps2.pNext        = &pushDescriptorProps;
+        vkGetPhysicalDeviceProperties2KHR(m_PhysicalDevice, &deviceProps2);
     }
 #pragma endregion
 }  // namespace VulkanWrapper

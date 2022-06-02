@@ -22,6 +22,7 @@ namespace Myu::VulkanWrapper
 
         VkImageView& getImageView() {return mImageView;}
         VkSampler& getSampler() {return mSampler;}
+        VkImage&     getImage() { return mImage; }
         
         VulkanTextureSpec mSpec;
         uint32_t          width;
@@ -29,7 +30,7 @@ namespace Myu::VulkanWrapper
 
     private:
         VulkanDevice *mDevice;
-        VkImage mImage;
+        VkImage               mImage{VK_NULL_HANDLE};
         VkImageLayout mImageLayout;
         VkDeviceMemory mImageMemory;
         VkDescriptorImageInfo mDescriptor;

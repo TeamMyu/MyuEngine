@@ -22,15 +22,16 @@ namespace Myu::VulkanWrapper::Utils
     {
         std::vector<VkDescriptorPoolSize> sizes;
         sizes.reserve(poolSizes.sizes.size());
-        for (auto sz : poolSizes.sizes) {
-            sizes.push_back({ sz.first, uint32_t(sz.second * count) });
+        for (auto sz : poolSizes.sizes)
+        {
+            sizes.push_back({sz.first, uint32_t(sz.second * count)});
         }
         VkDescriptorPoolCreateInfo pool_info = {};
-        pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        pool_info.flags = flags;
-        pool_info.maxSets = count;
-        pool_info.poolSizeCount = (uint32_t)sizes.size();
-        pool_info.pPoolSizes = sizes.data();
+        pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pool_info.flags                      = flags;
+        pool_info.maxSets                    = count;
+        pool_info.poolSizeCount              = (uint32_t)sizes.size();
+        pool_info.pPoolSizes                 = sizes.data();
 
         VkDescriptorPool descriptorPool;
         vkCreateDescriptorPool(device, &pool_info, nullptr, &descriptorPool);
@@ -59,33 +60,33 @@ namespace Myu::VulkanWrapper::Utils
         }
 
         VkDescriptorSetAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.pNext = nullptr;
+        allocInfo.sType                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.pNext                       = nullptr;
 
-        allocInfo.pSetLayouts = &layout;
-        allocInfo.descriptorPool = currentPool;
+        allocInfo.pSetLayouts        = &layout;
+        allocInfo.descriptorPool     = currentPool;
         allocInfo.descriptorSetCount = 1;
-        
 
-        VkResult allocResult = vkAllocateDescriptorSets(device, &allocInfo, set);
-        bool needReallocate = false;
+        VkResult allocResult    = vkAllocateDescriptorSets(device, &allocInfo, set);
+        bool     needReallocate = false;
 
-        switch (allocResult) {
-        case VK_SUCCESS:
-            //all good, return
-            return true;
+        switch (allocResult)
+        {
+            case VK_SUCCESS:
+                //all good, return
+                return true;
 
-            break;
-        case VK_ERROR_FRAGMENTED_POOL:
-        case VK_ERROR_OUT_OF_POOL_MEMORY:
-            //reallocate pool
-            needReallocate = true;
-            break;
-        default:
-            //unrecoverable error
-            return false;
+                break;
+            case VK_ERROR_FRAGMENTED_POOL:
+            case VK_ERROR_OUT_OF_POOL_MEMORY:
+                //reallocate pool
+                needReallocate = true;
+                break;
+            default:
+                //unrecoverable error
+                return false;
         }
-        
+
         if (needReallocate)
         {
             //allocate a new pool and retry
@@ -130,7 +131,8 @@ namespace Myu::VulkanWrapper::Utils
             freePools.pop_back();
             return pool;
         }
-        else {
+        else
+        {
             return createDescPool(device, descriptorSizes, 1000, 0);
         }
     }
@@ -144,9 +146,10 @@ namespace Myu::VulkanWrapper::Utils
     {
         DescriptorLayoutInfo layoutinfo;
         layoutinfo.bindings.reserve(info->bindingCount);
-        bool isSorted = true;
+        bool    isSorted    = true;
         int32_t lastBinding = -1;
-        for (uint32_t i = 0; i < info->bindingCount; i++) {
+        for (uint32_t i = 0; i < info->bindingCount; i++)
+        {
             layoutinfo.bindings.push_back(info->pBindings[i]);
 
             //check that the bindings are in strict increasing order
@@ -154,23 +157,24 @@ namespace Myu::VulkanWrapper::Utils
             {
                 lastBinding = info->pBindings[i].binding;
             }
-            else{
+            else
+            {
                 isSorted = false;
             }
         }
         if (!isSorted)
         {
-            std::sort(layoutinfo.bindings.begin(), layoutinfo.bindings.end(), [](VkDescriptorSetLayoutBinding& a, VkDescriptorSetLayoutBinding& b ) {
-                return a.binding < b.binding;
-            });
+            std::sort(layoutinfo.bindings.begin(), layoutinfo.bindings.end(), [](VkDescriptorSetLayoutBinding& a, VkDescriptorSetLayoutBinding& b)
+                      { return a.binding < b.binding; });
         }
-        
+
         auto it = layoutCache.find(layoutinfo);
         if (it != layoutCache.end())
         {
             return (*it).second;
         }
-        else {
+        else
+        {
             VkDescriptorSetLayout layout;
             vkCreateDescriptorSetLayout(device, info, nullptr, &layout);
 
@@ -180,7 +184,6 @@ namespace Myu::VulkanWrapper::Utils
             return layout;
         }
     }
-
 
     void DescriptorLayoutCache::cleanup()
     {
@@ -194,22 +197,21 @@ namespace Myu::VulkanWrapper::Utils
     DescriptorBuilder DescriptorBuilder::begin(DescriptorLayoutCache* layoutCache, DescriptorAllocator* allocator)
     {
         DescriptorBuilder builder;
-        
+
         builder.cache = layoutCache;
         builder.alloc = allocator;
         return builder;
     }
 
-
     DescriptorBuilder& DescriptorBuilder::bindBuffer(VkDescriptorBufferInfo* bufferInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
     {
         VkDescriptorSetLayoutBinding newBinding{};
 
-        newBinding.descriptorCount = 1;
-        newBinding.descriptorType = type;
+        newBinding.descriptorCount    = 1;
+        newBinding.descriptorType     = type;
         newBinding.pImmutableSamplers = nullptr;
-        newBinding.stageFlags = stageFlags;
-        newBinding.binding = bindings.size();
+        newBinding.stageFlags         = stageFlags;
+        newBinding.binding            = bindings.size();
 
         bindings.push_back(newBinding);
 
@@ -218,24 +220,23 @@ namespace Myu::VulkanWrapper::Utils
         newWrite.pNext = nullptr;
 
         newWrite.descriptorCount = 1;
-        newWrite.descriptorType = type;
-        newWrite.pBufferInfo = bufferInfo;
-        newWrite.dstBinding = newBinding.binding;
+        newWrite.descriptorType  = type;
+        newWrite.pBufferInfo     = bufferInfo;
+        newWrite.dstBinding      = newBinding.binding;
 
         writes.push_back(newWrite);
         return *this;
     }
 
-
     DescriptorBuilder& DescriptorBuilder::bindImage(VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags)
     {
         VkDescriptorSetLayoutBinding newBinding{};
 
-        newBinding.descriptorCount = 1;
-        newBinding.descriptorType = type;
+        newBinding.descriptorCount    = 1;
+        newBinding.descriptorType     = type;
         newBinding.pImmutableSamplers = nullptr;
-        newBinding.stageFlags = stageFlags;
-        newBinding.binding = bindings.size();
+        newBinding.stageFlags         = stageFlags;
+        newBinding.binding            = bindings.size();
 
         bindings.push_back(newBinding);
 
@@ -244,12 +245,27 @@ namespace Myu::VulkanWrapper::Utils
         newWrite.pNext = nullptr;
 
         newWrite.descriptorCount = 1;
-        newWrite.descriptorType = type;
-        newWrite.pImageInfo = imageInfo;
-        newWrite.dstBinding = newBinding.binding;
+        newWrite.descriptorType  = type;
+        newWrite.pImageInfo      = imageInfo;
+        newWrite.dstBinding      = newBinding.binding;
 
         writes.push_back(newWrite);
         return *this;
+    }
+
+    bool DescriptorBuilder::build(VkDescriptorSet& set, VkDescriptorSetLayout& layout, VkDescriptorSetLayoutCreateFlagBits flag)
+    {
+        //build layout first
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.pNext        = nullptr;
+        layoutInfo.flags        = flag;
+        layoutInfo.pBindings    = bindings.data();
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+
+        layout = cache->createDescLayout(&layoutInfo);
+
+        return true;
     }
 
     bool DescriptorBuilder::build(VkDescriptorSet& set, VkDescriptorSetLayout& layout)
@@ -259,17 +275,21 @@ namespace Myu::VulkanWrapper::Utils
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.pNext = nullptr;
 
-        layoutInfo.pBindings = bindings.data();
+        layoutInfo.pBindings    = bindings.data();
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 
         layout = cache->createDescLayout(&layoutInfo);
 
         //allocate descriptor
         bool success = alloc->allocate(&set, layout);
-        if (!success) { return false; };
+        if (!success)
+        {
+            return false;
+        };
 
         //write descriptor
-        for (VkWriteDescriptorSet& w : writes) {
+        for (VkWriteDescriptorSet& w : writes)
+        {
             w.dstSet = set;
         }
 
@@ -278,13 +298,11 @@ namespace Myu::VulkanWrapper::Utils
         return true;
     }
 
-
     bool DescriptorBuilder::build(VkDescriptorSet& set)
     {
         VkDescriptorSetLayout layout;
         return build(set, layout);
     }
-
 
     bool DescriptorLayoutCache::DescriptorLayoutInfo::operator==(const DescriptorLayoutInfo& other) const
     {
@@ -292,9 +310,11 @@ namespace Myu::VulkanWrapper::Utils
         {
             return false;
         }
-        else {
+        else
+        {
             //compare each of the bindings is the same. Bindings are sorted so they will match
-            for (int i = 0; i < bindings.size(); i++) {
+            for (int i = 0; i < bindings.size(); i++)
+            {
                 if (other.bindings[i].binding != bindings[i].binding)
                 {
                     return false;
@@ -318,8 +338,8 @@ namespace Myu::VulkanWrapper::Utils
 
     size_t DescriptorLayoutCache::DescriptorLayoutInfo::hash() const
     {
-        using std::size_t;
         using std::hash;
+        using std::size_t;
 
         size_t result = hash<size_t>()(bindings.size());
 
@@ -327,7 +347,7 @@ namespace Myu::VulkanWrapper::Utils
         {
             //pack the binding data into a single int64. Not fully correct but its ok
             size_t binding_hash = b.binding | b.descriptorType << 8 | b.descriptorCount << 16 | b.stageFlags << 24;
-            
+
             //shuffle the packed binding data and xor it with the main hash
             result ^= hash<size_t>()(binding_hash);
         }
@@ -339,7 +359,9 @@ namespace Myu::VulkanWrapper::Utils
     {
         switch (errorCode)
         {
-    #define STR(r) case VK_ ##r: return #r
+#define STR(r)   \
+    case VK_##r: \
+        return #r
             STR(NOT_READY);
             STR(TIMEOUT);
             STR(EVENT_SET);
@@ -363,9 +385,9 @@ namespace Myu::VulkanWrapper::Utils
             STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
             STR(ERROR_VALIDATION_FAILED_EXT);
             STR(ERROR_INVALID_SHADER_NV);
-    #undef STR
-        default:
-            return "UNKNOWN_ERROR";
+#undef STR
+            default:
+                return "UNKNOWN_ERROR";
         }
     }
 
@@ -408,54 +430,128 @@ namespace Myu::VulkanWrapper::Utils
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
 
-        VkImageMemoryBarrier barrier{};
-        barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout                       = oldLayout;
-        barrier.newLayout                       = newLayout;
-        barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image                           = image;
-        barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel   = 0;
-        barrier.subresourceRange.levelCount     = 1;
-        barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount     = 1;
+        VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
+        VkImageMemoryBarrier imageMemoryBarrier{};
+        imageMemoryBarrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageMemoryBarrier.oldLayout                       = oldLayout;
+        imageMemoryBarrier.newLayout                       = newLayout;
+        imageMemoryBarrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+        imageMemoryBarrier.image                           = image;
+        imageMemoryBarrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageMemoryBarrier.subresourceRange.baseMipLevel   = 0;
+        imageMemoryBarrier.subresourceRange.levelCount     = 1;
+        imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+        imageMemoryBarrier.subresourceRange.layerCount     = 1;
 
         VkPipelineStageFlags sourceStage;
         VkPipelineStageFlags destinationStage;
-
-        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+        switch (oldLayout)
         {
-            barrier.srcAccessMask = 0;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            case VK_IMAGE_LAYOUT_UNDEFINED:
+                // Image layout is undefined (or does not matter)
+                // Only valid as initial layout
+                // No flags required, listed only for completeness
+                imageMemoryBarrier.srcAccessMask = 0;
+                break;
 
-            sourceStage      = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            case VK_IMAGE_LAYOUT_PREINITIALIZED:
+                // Image is preinitialized
+                // Only valid as initial layout for linear images, preserves memory contents
+                // Make sure host writes have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                // Image is a color attachment
+                // Make sure any writes to the color buffer have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                // Image is a depth/stencil attachment
+                // Make sure any writes to the depth/stencil buffer have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                // Image is a transfer source
+                // Make sure any reads from the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                // Image is a transfer destination
+                // Make sure any writes to the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                // Image is read by a shader
+                // Make sure any shader reads from the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+            default:
+                // Other source layouts aren't handled (yet)
+                break;
         }
-        else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-                 newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+
+        // Target layouts (new)
+        // Destination access mask controls the dependency for the new image layout
+        switch (newLayout)
         {
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                // Image will be used as a transfer destination
+                // Make sure any writes to the image have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                break;
 
-            sourceStage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else
-        {
-            throw std::invalid_argument("unsupported layout transition!");
+            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                // Image will be used as a transfer source
+                // Make sure any reads from the image have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                // Image will be used as a color attachment
+                // Make sure any writes to the color buffer have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                // Image layout will be used as a depth/stencil attachment
+                // Make sure any writes to depth/stencil buffer have been finished
+                imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                // Image will be read in a shader (sampler, input attachment)
+                // Make sure any writes to the image have been finished
+                if (imageMemoryBarrier.srcAccessMask == 0)
+                {
+                    imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+                }
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+            default:
+                // Other source layouts aren't handled (yet)
+                break;
         }
 
-        vkCmdPipelineBarrier(commandBuffer,
-                             sourceStage,
-                             destinationStage,
-                             0,
-                             0,
-                             nullptr,
-                             0,
-                             nullptr,
-                             1,
-                             &barrier);
+        // Put barrier inside setup command buffer
+        vkCmdPipelineBarrier(
+            commandBuffer,
+            srcStageMask,
+            dstStageMask,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &imageMemoryBarrier);
 
         endSingleTimeCommands(device, commandBuffer);
     }
@@ -499,7 +595,7 @@ namespace Myu::VulkanWrapper::Utils
         }
     }
 
-    void createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptorSet,  VkBuffer &uniformBuffer, VkImageView& imgView, VkSampler& sampler)
+    void createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptorSet, VkBuffer& uniformBuffer, VkImageView& imgView, VkSampler& sampler)
     {
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -510,51 +606,50 @@ namespace Myu::VulkanWrapper::Utils
         {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
-        
+
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = uniformBuffer;
         bufferInfo.offset = 0;
         bufferInfo.range  = sizeof(UniformBufferObject);
-        
+
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = imgView;
-        imageInfo.sampler = sampler;
-        
-        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[0].dstSet = descriptorSet;
-        descriptorWrites[0].dstBinding = 0;
-        descriptorWrites[0].dstArrayElement = 0;
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrites[0].descriptorCount = 1;
-        descriptorWrites[0].pBufferInfo = &bufferInfo;
+        imageInfo.imageView   = imgView;
+        imageInfo.sampler     = sampler;
 
-        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[1].dstSet = descriptorSet;
-        descriptorWrites[1].dstBinding = 1;
+        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+        descriptorWrites[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[0].dstSet          = descriptorSet;
+        descriptorWrites[0].dstBinding      = 0;
+        descriptorWrites[0].dstArrayElement = 0;
+        descriptorWrites[0].descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].descriptorCount = 1;
+        descriptorWrites[0].pBufferInfo     = &bufferInfo;
+
+        descriptorWrites[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[1].dstSet          = descriptorSet;
+        descriptorWrites[1].dstBinding      = 1;
         descriptorWrites[1].dstArrayElement = 0;
-        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrites[1].descriptorCount = 1;
-        descriptorWrites[1].pImageInfo = &imageInfo;
-        
+        descriptorWrites[1].pImageInfo      = &imageInfo;
+
         vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
     void createVertexBuffer(const VulkanDevice& device, const std::vector<Vertex>& vertices, VkBuffer* vertexBuffer, VkDeviceMemory* vertexBufferMemory)
     {
-        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+        VkDeviceSize   bufferSize = sizeof(vertices[0]) * vertices.size();
         VkBuffer       stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
-        void *data;
+        void* data;
         vkMapMemory(device.GetVkLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(device.GetVkLogicalDevice(), stagingBufferMemory);
 
-        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
         copyBuffer(device, stagingBuffer, *vertexBuffer, bufferSize);
 
@@ -562,7 +657,7 @@ namespace Myu::VulkanWrapper::Utils
         vkFreeMemory(device.GetVkLogicalDevice(), stagingBufferMemory, nullptr);
     }
 
-    void createIndexBuffer(const VulkanDevice& device, const std::vector<uint32_t>& indices, VkBuffer *pIndexBuffer, VkDeviceMemory* pIndexBufferMemory)
+    void createIndexBuffer(const VulkanDevice& device, const std::vector<uint32_t>& indices, VkBuffer* pIndexBuffer, VkDeviceMemory* pIndexBufferMemory)
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -570,7 +665,7 @@ namespace Myu::VulkanWrapper::Utils
         VkDeviceMemory stagingBufferMemory;
         createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
-        void *data;
+        void* data;
         vkMapMemory(device.GetVkLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, indices.data(), (size_t)bufferSize);
         vkUnmapMemory(device.GetVkLogicalDevice(), stagingBufferMemory);
@@ -658,16 +753,15 @@ namespace Myu::VulkanWrapper::Utils
         endSingleTimeCommands(device, commandBuffer);
     }
 
- 
     void updateUniformBuffer(VkDevice device, VkDeviceMemory& uniformBuffersMemory, UniformBufferObject ubo)
     {
-        void *data;
+        void* data;
         vkMapMemory(device, uniformBuffersMemory, 0, sizeof(ubo), 0, &data);
         memcpy(data, &ubo, sizeof(ubo));
         vkUnmapMemory(device, uniformBuffersMemory);
     }
 
-    void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet)
+    void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet& descriptorSet)
     {
         vkCmdBindDescriptorSets(commandBuffer,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -678,4 +772,4 @@ namespace Myu::VulkanWrapper::Utils
                                 0,
                                 nullptr);
     }
-}
+}  // namespace Myu::VulkanWrapper::Utils

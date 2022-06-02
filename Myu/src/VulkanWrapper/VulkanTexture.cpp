@@ -47,9 +47,21 @@ namespace Myu::VulkanWrapper
         this->width   = w;
         this->height  = h;
 
-        createImage(mDevice->GetVkPhysicalDevice(), mDevice->GetVkLogicalDevice(), w, h, format, VK_IMAGE_TILING_OPTIMAL, mSpec.imageUsageFlags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mImage, mImageMemory);
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType   = VK_IMAGE_TYPE_2D;
+        imageInfo.format      = format;
+        imageInfo.extent      = {w, h, 1};
+        imageInfo.mipLevels   = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.samples     = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.tiling      = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.usage       = mSpec.imageUsageFlags;
+        imageInfo.flags = 0;
 
-        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, mSpec.imageLayout);
+        createImage(mDevice->GetVkPhysicalDevice(), mDevice->GetVkLogicalDevice(), imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mImage, mImageMemory);
+
+        Utils::transitionImageLayout(*mDevice, mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, mSpec.imageLayout);
         Utils::createImageView(device->GetVkLogicalDevice(), mImage, &mImageView, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
         // get maxSamplerAnisotropy for sampler
@@ -96,22 +108,21 @@ namespace Myu::VulkanWrapper
 
         if (imageSize != 64 || texChannels != 1) stbi_image_free(pixels);
 
-        createImage(mDevice->GetVkPhysicalDevice(), mDevice->GetVkLogicalDevice(), texWidth, texHeight,
-                    VK_FORMAT_R8G8B8A8_SRGB,
+        createImage(mDevice->GetVkPhysicalDevice(), mDevice->GetVkLogicalDevice(), texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM,
                     VK_IMAGE_TILING_OPTIMAL, mSpec.imageUsageFlags,
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                     mImage, mImageMemory);
 
-        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         
         Utils::copyBufferToImage(*mDevice, stagingBuffer, mImage, TO_UINT32(texWidth), TO_UINT32(texHeight));
         
-        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mSpec.imageLayout);
+        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mSpec.imageLayout);
 
         vkDestroyBuffer(device->GetVkLogicalDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device->GetVkLogicalDevice(), stagingBufferMemory, nullptr);
         
-        Utils::createImageView(device->GetVkLogicalDevice(), mImage, &mImageView, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        Utils::createImageView(device->GetVkLogicalDevice(), mImage, &mImageView, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
         
         // get maxSamplerAnisotropy for sampler
         VkPhysicalDeviceProperties properties{};

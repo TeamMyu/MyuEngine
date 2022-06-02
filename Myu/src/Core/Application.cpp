@@ -14,15 +14,16 @@ VkPipeline graphicsPipeline;
 
 struct Compute
 {
-    VkQueue                                         queue;                // Separate queue for compute commands (queue family may differ from the one used for graphics)
-    VkCommandPool                                   commandPool;          // Use a separate command pool (queue family may differ from the one used for graphics)
-    VkCommandBuffer                                 commandBuffer;        // Command buffer storing the dispatch commands and barriers
-    VkSemaphore                                     semaphore;            // Execution dependency between compute & graphic submission
-    VkDescriptorSetLayout                           descriptorSetLayout;  // Compute shader binding layout
-    VkDescriptorSet                                 descriptorSet;        // Compute shader bindings
-    VkPipelineLayout                                pipelineLayout;       // Layout of the compute pipeline
+    VkQueue                                          queue;                // Separate queue for compute commands (queue family may differ from the one used for graphics)
+    VkCommandPool                                    commandPool;          // Use a separate command pool (queue family may differ from the one used for graphics)
+    VkCommandBuffer                                  commandBuffer;        // Command buffer storing the dispatch commands and barriers
+    VkSemaphore                                      semaphore;            // Execution dependency between compute & graphic submission
+    VkDescriptorSetLayout                            descriptorSetLayout;  // Compute shader binding layout
+    VkDescriptorSet                                  descriptorSet;        // Compute shader bindings
+    VkPipelineLayout                                 pipelineLayout;       // Layout of the compute pipeline
     std::vector<Myu::VulkanWrapper::VulkanPipeline*> pipelines;            // Compute pipelines for image filters
-    int32_t                                         pipelineIndex = 0;    // Current image filtering compute pipeline index
+    int32_t                                          pipelineIndex = 0;    // Current image filtering compute pipeline index
+    VkFence                                          fence;
 
     Myu::VulkanWrapper::VulkanTexture inputTexture;
     Myu::VulkanWrapper::VulkanTexture outputTexture;
@@ -59,6 +60,9 @@ namespace Myu
     Application::Application()
     {
         loadGameObjects();
+
+        compute.inputTexture  = gameObjects[0].model->getMeshes()[0].getMaterial().inputTexture;
+        compute.outputTexture = gameObjects[0].model->getMeshes()[0].getMaterial().outputTexture;
 
         //FIXME: HACK
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &gameObjects[0].model->getMeshes()[0].getMaterial().getDescriptorLayout(), &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
@@ -159,9 +163,9 @@ namespace Myu
 
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), fragShaderModule, nullptr);
             vkDestroyShaderModule(m_Device.GetVkLogicalDevice(), vertShaderModule, nullptr);
-        }*/ 
+        }*/
 
-        /*if (1 == 2){
+        {
             // Semaphore for compute & graphics sync
             VkSemaphoreCreateInfo semaphoreCreateInfo{};
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;  // 이전 graphics pipe에 semaphore 하나 더 생성
@@ -169,7 +173,7 @@ namespace Myu
 
             // Signal the semaphore
             VkSubmitInfo submitInfo{};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores    = &graphics.semaphore;
             vkQueueSubmit(m_Device.GetVkGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
@@ -182,17 +186,7 @@ namespace Myu
             descAllocator.init(m_Device.GetVkLogicalDevice());
             descLayoutCache.init(m_Device.GetVkLogicalDevice());
 
-            compute.inputTexture.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-            compute.inputTexture.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-            compute.inputTexture.mSpec.imageLayout           = VK_IMAGE_LAYOUT_GENERAL;
-            compute.inputTexture.loadFromFile(&m_Device, "textures/viking_room.png");
-
-            compute.outputTexture.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-            compute.outputTexture.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-            compute.outputTexture.mSpec.imageLayout           = VK_IMAGE_LAYOUT_GENERAL;
-            compute.outputTexture.createTextureTarget(&m_Device, compute.inputTexture.width, compute.inputTexture.height, VK_FORMAT_R8G8B8A8_SRGB);
-
-            ///*
+            /*
             VulkanWrapper::Utils::createStorageBuffer(m_Device, &storageBuffer, &storageBufferMemory, sizeof(VulkanWrapper::UniformBufferObject), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             VkDescriptorBufferInfo bufferInfo{};
@@ -201,15 +195,22 @@ namespace Myu
             bufferInfo.range  = sizeof(VulkanWrapper::UniformBufferObject);
 
             .bindBuffer(&bufferInfo, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
-            //
+            */
 
-            auto inputImageInfo  = VulkanWrapper::Utils::createDescImageInfo(compute.inputTexture.getImageView(), compute.inputTexture.getSampler());
-            auto outputImageInfo = VulkanWrapper::Utils::createDescImageInfo(compute.inputTexture.getImageView(), compute.inputTexture.getSampler());
+            VkDescriptorImageInfo inputImageInfo{};
+            inputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            inputImageInfo.imageView   = compute.inputTexture.getImageView();
+            inputImageInfo.sampler     = compute.inputTexture.getSampler();
+
+            VkDescriptorImageInfo outputImageInfo{};
+            outputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            outputImageInfo.imageView   = compute.outputTexture.getImageView();
+            outputImageInfo.sampler     = compute.outputTexture.getSampler();
 
             VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
                 .bindImage(&inputImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
                 .bindImage(&outputImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
-                .build(compute.descriptorSet, compute.descriptorSetLayout);
+                .build(compute.descriptorSet, compute.descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
 
             VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &compute.descriptorSetLayout, &compute.pipelineLayout);
 
@@ -218,8 +219,8 @@ namespace Myu
             shaderNames = {"postprocessing"};
             for (auto& shaderName : shaderNames)
             {
-                std::string fileName            = "shaders/" + shaderName + ".comp.spv";
-                auto        shaderBinary        = Utils::readFile(fileName);
+                std::string fileName     = "shaders/" + shaderName + ".comp.spv";
+                auto        shaderBinary = Utils::readFile(fileName);
 
                 VkShaderModule compShaderModule =
                     VulkanWrapper::Utils::createShaderModule(m_Device.GetVkLogicalDevice(), shaderBinary);
@@ -238,6 +239,8 @@ namespace Myu
 
                 pipelineSpec.pipelineType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 
+                pipelineSpec.pipelineLayout = compute.pipelineLayout;
+
                 auto computePipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
                 compute.pipelines.push_back(std::move(computePipe));
 
@@ -250,7 +253,7 @@ namespace Myu
             cmdPoolInfo.queueFamilyIndex        = m_Device.GetQueueFamilyIndices().computeFamily.value();
             cmdPoolInfo.flags                   = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             vkCreateCommandPool(m_Device.GetVkLogicalDevice(), &cmdPoolInfo, nullptr, &compute.commandPool);
-            
+
             // Create a command buffer for compute operations
             VkCommandBufferAllocateInfo allocInfo{};
             allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -261,126 +264,16 @@ namespace Myu
             vkAllocateCommandBuffers(m_Device.GetVkLogicalDevice(), &allocInfo, &compute.commandBuffer);
 
             // Semaphore for compute & graphics sync
-            VkSemaphoreCreateInfo semaphoreCreateInfo{};
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
             vkCreateSemaphore(m_Device.GetVkLogicalDevice(), &semaphoreCreateInfo, nullptr, &compute.semaphore);
 
+            VkFenceCreateInfo fenceCreateInfo{};
+            fenceCreateInfo.sType             = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            fenceCreateInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
+            vkCreateFence(m_Device.GetVkLogicalDevice(), &fenceCreateInfo, nullptr, &compute.fence);
+
             compute.queue = m_Device.GetVkComputeQueue();
-
-            // Build a single command buffer containing the compute dispatch commands
-            // Flush the queue if we're rebuilding the command buffer after a pipeline change to ensure it's not currently in use
-            vkQueueWaitIdle(compute.queue);
-
-            VkCommandBufferBeginInfo cmdBufferBeginInfo{};
-            cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-            vkBeginCommandBuffer(compute.commandBuffer, &cmdBufferBeginInfo);
-
-            vkCmdBindPipeline(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelines[compute.pipelineIndex]->GetVulkanPipeline());
-            vkCmdBindDescriptorSets(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelineLayout, 0, 1, &compute.descriptorSet, 0, 0);
-
-            vkCmdDispatch(compute.commandBuffer, compute.outputTexture.width / 16, compute.outputTexture.height / 16, 1);
-
-            vkEndCommandBuffer(compute.commandBuffer);
-
-            // draw
-            // shader가 바뀔때 실행
-
-            VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
-
-            for (int32_t i = 0; i < m_Device.GetCommandBuffers().size(); ++i)
-            {
-                // Set target frame buffer
-                renderPassBeginInfo.framebuffer = frameBuffers[i];
-
-                VK_CHECK_RESULT(vkBeginCommandBuffer(drawCmdBuffers[i], &cmdBufInfo));
-
-                // Image memory barrier to make sure that compute shader writes are finished before sampling from the texture
-                VkImageMemoryBarrier imageMemoryBarrier = {};
-                imageMemoryBarrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                // We won't be changing the layout of the image
-                imageMemoryBarrier.oldLayout           = VK_IMAGE_LAYOUT_GENERAL;
-                imageMemoryBarrier.newLayout           = VK_IMAGE_LAYOUT_GENERAL;
-                imageMemoryBarrier.image               = textureComputeTarget.image;
-                imageMemoryBarrier.subresourceRange    = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-                imageMemoryBarrier.srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT;
-                imageMemoryBarrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
-                imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-                // image transfer 할때 베리어하고 겹칠 가능성
-                // Compute -> Fragment 로 연결되는 베리어
-                // 베리어는 파이프라인 간 스테이지의 단순 실행순서 지정임 나머지 파이프라인 stage는 병렬처리됨
-                // 또한 베리어를 사용해도 코드의 실행순서는 세마포어로 동기화가 필요함
-                vkCmdPipelineBarrier(
-                    drawCmdBuffers[i],
-                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
-                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    0,
-                    0,
-                    nullptr,
-                    0,
-                    nullptr,
-                    1,
-                    &imageMemoryBarrier);
-
-                // Left (pre compute)
-                vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipelineLayout, 0, 1, &graphics.descriptorSetPreCompute, 0, NULL);
-                vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipeline);
-
-                vkCmdDrawIndexed(drawCmdBuffers[i], indexCount, 1, 0, 0, 0);
-
-                // Right (post compute)
-                vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipelineLayout, 0, 1, &graphics.descriptorSetPostCompute, 0, NULL);
-                vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipeline);
-
-                vkCmdDrawIndexed(drawCmdBuffers[i], indexCount, 1, 0, 0, 0);
-
-                // --------- Wait for rendering finished
-                VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-
-                // Submit compute commands
-                VkSubmitInfo computeSubmitInfo{};
-                computeSubmitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                computeSubmitInfo.commandBufferCount   = 1;
-                computeSubmitInfo.pCommandBuffers      = &compute.commandBuffer;
-                computeSubmitInfo.waitSemaphoreCount   = 1;
-                computeSubmitInfo.pWaitSemaphores      = &graphics.semaphore; // 기다리는 세마포어 -> 이전 렌더링 finish
-                computeSubmitInfo.pWaitDstStageMask    = &waitStageMask;
-                computeSubmitInfo.signalSemaphoreCount = 1;
-                computeSubmitInfo.pSignalSemaphores    = &compute.semaphore; // rendering finish singal 받는 semaphore pointer
-                VK_CHECK_RESULT(vkQueueSubmit(compute.queue, 1, &computeSubmitInfo, VK_NULL_HANDLE));
-
-                auto currentFrame  = m_Renderer.currentFrame;
-                auto currentBuffer = m_Renderer.GetCurrentBuffer();
-                // VulkanExampleBase::prepareFrame(); // aquire image
-                uint32_t imageIndex;
-                VkResult result = m_Swapchain.AcquireNextImage(&imageIndex, currentFrame);
-
-                VkPipelineStageFlags graphicsWaitStageMasks[]   = {VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-                VkSemaphore          graphicsWaitSemaphores[]   = {compute.semaphore, m_Swapchain.imageAvailableSemaphores[currentFrame]};  // 컴퓨트가 present가 끝나면
-                VkSemaphore          graphicsSignalSemaphores[] = {graphics.semaphore, m_Swapchain.renderFinishedSemaphores[currentFrame]};  // 그래픽 세마포어에 렌더링 finish signal 보냄
-
-                // Submit graphics commands
-                submitInfo.commandBufferCount   = 1;
-                submitInfo.pCommandBuffers      = &drawCmdBuffers[currentBuffer];
-                submitInfo.waitSemaphoreCount   = 2;
-                submitInfo.pWaitSemaphores      = graphicsWaitSemaphores;
-                submitInfo.pWaitDstStageMask    = graphicsWaitStageMasks;
-                submitInfo.signalSemaphoreCount = 2;
-                submitInfo.pSignalSemaphores    = graphicsSignalSemaphores;
-                vkQueueSubmit(m_Device.GetVkGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-
-
-
-                // 베리어로 compute pipe compute stage -> graphics pipe frag stage 순서로 실행되게 지정
-                // graphics pipe가 끝나는걸 기다림(compute stage에서) -> compute pipe에 계산 command 전송 -> compute pipe 세마포어에 시그널 전송
-                // ----
-                // compute의 세마포어와 스왑체인의 image 준비가 되길 기다림 
-                // graphics queue에 command 전송
-                // graphics 세마포어와 renderfinish 세마포어에  시그널 전송
-            }
-        }*/
+        }
         // create texture relevent resources
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
 
@@ -436,9 +329,86 @@ namespace Myu
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        vkResetCommandBuffer(currentBuffer, 0); // delete
+        vkResetCommandBuffer(currentBuffer, 0);  // delete
+        vkResetCommandBuffer(compute.commandBuffer, 0);  // delete
         // to all command buffers
         m_Renderer.BeginDraw();
+
+        vkQueueWaitIdle(compute.queue);
+
+        VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+        cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+        vkBeginCommandBuffer(compute.commandBuffer, &cmdBufferBeginInfo);
+
+        vkCmdBindPipeline(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelines[compute.pipelineIndex]->GetVulkanPipeline());
+
+        for (auto& go : gameObjects)
+        {
+  
+
+            for (auto mesh : go.model->getMeshes())
+            {
+                VkDescriptorImageInfo inputImageInfo{};
+                inputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+                inputImageInfo.imageView   = mesh.getMaterial().inputTexture.getImageView();
+                inputImageInfo.sampler     = mesh.getMaterial().inputTexture.getSampler();
+
+                VkDescriptorImageInfo outputImageInfo{};
+                outputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+                outputImageInfo.imageView   = mesh.getMaterial().outputTexture.getImageView();
+                outputImageInfo.sampler     = mesh.getMaterial().outputTexture.getSampler();
+
+                std::array<VkWriteDescriptorSet, 2> writeDescriptorSets{};
+
+                writeDescriptorSets[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                writeDescriptorSets[0].dstSet          = 0;
+                writeDescriptorSets[0].dstBinding      = 0;
+                writeDescriptorSets[0].descriptorCount = 1;
+                writeDescriptorSets[0].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                writeDescriptorSets[0].pImageInfo      = &inputImageInfo;
+
+                writeDescriptorSets[1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                writeDescriptorSets[1].dstSet          = 0;
+                writeDescriptorSets[1].dstBinding      = 1;
+                writeDescriptorSets[1].descriptorCount = 1;
+                writeDescriptorSets[1].descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                writeDescriptorSets[1].pImageInfo      = &outputImageInfo;
+
+                m_Device.vkCmdPushDescriptorSetKHR(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelineLayout, 0, 2, writeDescriptorSets.data());
+
+                //vkCmdBindDescriptorSets(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelineLayout, 0, 1, &compute.descriptorSet, 0, 0);
+                vkCmdDispatch(compute.commandBuffer, compute.outputTexture.width / 16, compute.outputTexture.height / 16, 1);
+
+                VkImageMemoryBarrier imageMemoryBarrier = {};
+                imageMemoryBarrier.sType                = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                // We won't be changing the layout of the image
+                imageMemoryBarrier.oldLayout           = VK_IMAGE_LAYOUT_GENERAL;
+                imageMemoryBarrier.newLayout           = VK_IMAGE_LAYOUT_GENERAL;
+                imageMemoryBarrier.image               = mesh.getMaterial().outputTexture.getImage();
+                imageMemoryBarrier.subresourceRange    = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+                imageMemoryBarrier.srcAccessMask       = VK_ACCESS_SHADER_WRITE_BIT;
+                imageMemoryBarrier.dstAccessMask       = VK_ACCESS_SHADER_READ_BIT;
+                imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+                // 파이프라인이 dst(fragment)에 도착했을때 compute 단계가 done이 되면 실행
+                // queue의 전후 기록된 명령간 dependency 생성
+                vkCmdPipelineBarrier(
+                    currentBuffer,
+                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    0,
+                    0,
+                    nullptr,
+                    0,
+                    nullptr,
+                    1,
+                    &imageMemoryBarrier);
+            }
+            
+        }
+        vkEndCommandBuffer(compute.commandBuffer);
 
         m_Swapchain.BeginRenderPass(currentBuffer, imageIndex);
 
@@ -455,22 +425,62 @@ namespace Myu
 
         // to all command buffers
 
-        std::vector bufs{currentBuffer};
-        result = m_Swapchain.PresentQueue(bufs, imageIndex, currentFrame);
+        vkWaitForFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence);
+
+        VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+        // Submit compute commands
+        VkSubmitInfo computeSubmitInfo{};
+        computeSubmitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        computeSubmitInfo.commandBufferCount   = 1;
+        computeSubmitInfo.pCommandBuffers      = &compute.commandBuffer;
+        computeSubmitInfo.waitSemaphoreCount   = 1;
+        computeSubmitInfo.pWaitSemaphores      = &graphics.semaphore;  // 기다리는 세마포어 -> 이전 렌더링 finish
+        computeSubmitInfo.pWaitDstStageMask    = &waitStageMask;
+        computeSubmitInfo.signalSemaphoreCount = 1;
+        computeSubmitInfo.pSignalSemaphores    = &compute.semaphore;  // rendering finish singal 받는 semaphore pointer
+        VK_CHECK_RESULT(vkQueueSubmit(compute.queue, 1, &computeSubmitInfo, compute.fence));
+
+        VkPipelineStageFlags graphicsWaitStageMasks[]   = {VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkSemaphore          graphicsWaitSemaphores[]   = {compute.semaphore, m_Swapchain.imageAvailableSemaphores[currentFrame]};   // 컴퓨트가 present가 끝나면
+        VkSemaphore          graphicsSignalSemaphores[] = {graphics.semaphore, m_Swapchain.renderFinishedSemaphores[currentFrame]};  // 그래픽 세마포어에 렌더링 finish signal 보냄
+
+        // Submit graphics commands
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.pCommandBuffers      = &currentBuffer;
+        submitInfo.waitSemaphoreCount   = 2;
+        submitInfo.pWaitSemaphores      = graphicsWaitSemaphores;
+        submitInfo.pWaitDstStageMask    = graphicsWaitStageMasks;
+        submitInfo.signalSemaphoreCount = 2;
+        submitInfo.pSignalSemaphores    = graphicsSignalSemaphores;
+        vkQueueSubmit(m_Device.GetVkGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+
+        VkSemaphore signalSemaphores[]  = {m_Swapchain.renderFinishedSemaphores[currentFrame]};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores    = signalSemaphores;
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores    = signalSemaphores;
+
+        VkSwapchainKHR swapChains[] = {m_Swapchain.GetVkSwapChain()};
+        presentInfo.swapchainCount  = 1;
+        presentInfo.pSwapchains     = swapChains;
+        presentInfo.pImageIndices   = &imageIndex;
+        presentInfo.pResults        = nullptr;
+
+        result = vkQueuePresentKHR(m_Device.GetVkPresentQueue(), &presentInfo);
         if (result != VK_SUCCESS)
         {
             throw std::runtime_error("failed to present swap chain image!");
         }
-
         m_Renderer.EndDraw();
-        /*
-        void*    bufferData;
-        result = vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3, 0, VK_WHOLE_SIZE, 0, &bufferData);
-        std::cout << result << '\n';
-        //glm::vec4 recivedData = glm::make_vec4(bufferData);
-        std::cout << static_cast<char*>(bufferData) << '\n';
-        vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory3);
-        */
+
+        vkQueueWaitIdle(m_Device.GetVkPresentQueue());
     }
 
     void Application::loadGameObjects()
@@ -521,39 +531,6 @@ namespace Myu
 
             m_pPipeline->bind(commandBuffer);
             go.model->bind(commandBuffer, pipelineLayout, ubo);
-
-            /*
-            VkBufferMemoryBarrier bufferBarrier = vks::initializers::bufferMemoryBarrier();
-            bufferBarrier.buffer                = indirectCommandsBuffer.buffer;
-            bufferBarrier.size                  = indirectCommandsBuffer.descriptor.range;
-            bufferBarrier.srcAccessMask         = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-            bufferBarrier.dstAccessMask         = VK_ACCESS_SHADER_WRITE_BIT;
-            bufferBarrier.srcQueueFamilyIndex   = vulkanDevice->queueFamilyIndices.graphics;
-            bufferBarrier.dstQueueFamilyIndex   = vulkanDevice->queueFamilyIndices.compute;
-
-            vkCmdPipelineBarrier(
-                compute.commandBuffer,
-                VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT,
-                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                VK_FLAGS_NONE,
-                0,
-                nullptr,
-                1,
-                &bufferBarrier,
-                0,
-                nullptr);
-            
-
-            void* data;
-            vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory, 0, sizeof(ubo), 0, &data);
-            memcpy(data, &ubo, sizeof(ubo));
-            vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory);
-
-            Myu::VulkanWrapper::VertexObject v{};
-            vkMapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2, 0, sizeof(v), 0, &data);
-            memcpy(data, &v, sizeof(v));
-            vkUnmapMemory(m_Device.GetVkLogicalDevice(), storageBufferMemory2);
-            */
         }
     }
 }  // namespace Myu

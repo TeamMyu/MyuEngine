@@ -42,10 +42,14 @@ namespace Myu::VulkanWrapper
 
         VkCommandBuffer createCommandBuffer(VkCommandBufferLevel level, bool begin);
 
+        PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;
+        PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
+
     private:
         const std::vector<const char*> m_ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
-        const std::vector<const char*> m_DeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-        
+        const std::vector<const char*> m_DeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME};
+        const std::vector<const char*> m_InstanceExtensions = {VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME};
+
         // Class Ref
         GLFWwindow* m_rWindow;
         // ---
@@ -71,6 +75,8 @@ namespace Myu::VulkanWrapper
         void createCommandBuffers();
 
         void setupDebugMessenger();
+
+        void setupExtensions();
 
         VkResult createDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
                                               const VkAllocationCallbacks*              pAllocator,

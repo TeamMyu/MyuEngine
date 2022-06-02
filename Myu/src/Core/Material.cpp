@@ -44,12 +44,28 @@ namespace Myu
         auto TextureInfo3 = VulkanWrapper::Utils::createDescImageInfo(mTextures[2].getImageView(), mTextures[2].getSampler());
         auto TextureInfo4 = VulkanWrapper::Utils::createDescImageInfo(mTextures[3].getImageView(), mTextures[3].getSampler());
 
+        inputTexture.mSpec.imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+        inputTexture.mSpec.imageLayout     = VK_IMAGE_LAYOUT_GENERAL;
+        inputTexture.loadFromFile(device, "textures/viking_room.png");
+
+        outputTexture.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+        outputTexture.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+        outputTexture.mSpec.imageLayout           = VK_IMAGE_LAYOUT_GENERAL;
+        outputTexture.createTextureTarget(device, inputTexture.width, inputTexture.height, VK_FORMAT_R8G8B8A8_UNORM);
+
+        VkDescriptorImageInfo TextureInfo5{};
+        TextureInfo5.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        TextureInfo5.imageView   = outputTexture.getImageView();
+        TextureInfo5.sampler     = outputTexture.getSampler();
+
         auto builder = VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
-                           .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-                           .bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-                           .bindImage(&TextureInfo2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
-                           .bindImage(&TextureInfo3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
-                           .bindImage(&TextureInfo4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT);
+        .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+        .bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+        .bindImage(&TextureInfo2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+        .bindImage(&TextureInfo3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+        .bindImage(&TextureInfo4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT)
+        .bindImage(&TextureInfo5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+
         for (auto mTexture : mTextures)
         {
               // imageview 는 개별, sampler는 공유 가능
