@@ -1,0 +1,34 @@
+#version 450
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+struct Plane{
+	mat4 model;
+    mat4 view;
+    mat4 proj;
+};
+
+struct Effect{
+	float id;
+    vec2 config[ ]; // vec2(config index, config value)
+};
+
+layout (std430, binding = 3) buffer Effects
+{
+	Plane plane;
+	image2D maps[ ]; // Albedo(Color), Ambient, Diffuse, Specular, Ambient, Bump . . .
+	Effect effect;
+};
+
+void main()
+{
+	//vec3 rgb2 = imageLoad(samplerArray, ivec3(1,1,1)).rgb;
+	//vec3 rgb = imageLoad(samplerArray, ivec3(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, 1)).rgb;
+
+
+	//outUV = vec3(inUV, ubo.instance[gl_InstanceIndex].arrayIndex.x);
+	//mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
+	//gl_Position = ubo.projection * modelView * vec4(inPos, 1.0);
+
+	//imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), res);
+}

@@ -47,14 +47,6 @@ std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 Myu::KeyboardListener                                       keyboardListener{};
 Myu::Camera                                                 camera = Myu::Camera();
 
-std::vector<VkCommandBuffer> m_ImGuiCommandBuffers;
-VkDescriptorPool             m_ImGuiDescriptorPool;
-VkCommandPool                m_ImGuiCommandPool;
-std::vector<VkFramebuffer>   m_ImGuiFramebuffers;
-VkRenderPass                 m_ImGuiRenderPass;
-
-std::vector<VkDescriptorSet> descriptorSets(Myu::VulkanWrapper::MAX_FRAMES_IN_FLIGHT);
-
 namespace Myu
 {
     Application::Application()
@@ -216,7 +208,7 @@ namespace Myu
 
             // One pipeline for each effect
             std::vector<std::string> shaderNames;
-            shaderNames = {"postprocessing"};
+            shaderNames = {"preprocessing"};
             for (auto& shaderName : shaderNames)
             {
                 std::string fileName     = "shaders/" + shaderName + ".comp.spv";
@@ -353,7 +345,7 @@ namespace Myu
                 inputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
                 inputImageInfo.imageView   = mesh.getMaterial().inputTexture.getImageView();
                 inputImageInfo.sampler     = mesh.getMaterial().inputTexture.getSampler();
-
+           
                 VkDescriptorImageInfo outputImageInfo{};
                 outputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
                 outputImageInfo.imageView   = mesh.getMaterial().outputTexture.getImageView();
