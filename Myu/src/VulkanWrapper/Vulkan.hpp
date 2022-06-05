@@ -131,8 +131,6 @@ namespace Myu::VulkanWrapper
 
     void createTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device, VkSampler& textureSampler);
 
-    void transitionImageLayout(VkDevice device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkQueue queue, VkCommandPool commandPool);
-
     VkDescriptorSetLayoutBinding createDescriptorSetLayoutBinding(uint32_t binding, VkDescriptorType type, VkShaderStageFlagBits stageFlags, uint32_t count);
 
     void createUniformDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptorSet,  VkBuffer &uniformBuffer);
