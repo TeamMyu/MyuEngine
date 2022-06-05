@@ -23,6 +23,8 @@ namespace Myu
         
     private:
         VulkanWrapper::VulkanTexture mTexture;
+        std::vector<VulkanWrapper::VulkanTexture> mTextures;
+        
         VkDescriptorSet mDescriptorSet;
         VkDescriptorSetLayout mDescriptorLayout;
         

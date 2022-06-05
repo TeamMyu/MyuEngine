@@ -19,8 +19,8 @@ namespace Myu
         descAllocator.init(device->GetVkLogicalDevice());
         descLayoutCache.init(device->GetVkLogicalDevice());
         
-        auto uniformBufferInfo = VulkanWrapper::Utils::createDescBufferInfo(mUniformBuffer, 0, sizeof(VulkanWrapper::UniformBufferObject));
-        auto textureInfo = VulkanWrapper::Utils::createDescImageInfo(mTexture.getImageView(), mTexture.getSampler());
+        auto uniformBufferInfo = VulkanWrapper::Init::createDescBufferInfo(mUniformBuffer, 0, sizeof(VulkanWrapper::UniformBufferObject));
+        auto textureInfo = VulkanWrapper::Init::createDescImageInfo(mTexture.getImageView(), mTexture.getSampler());
         
         VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
             .bindBuffer(0, &uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
