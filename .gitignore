@@ -19,3 +19,6 @@ bin-int/
 
 # SPIR-V output files
 *.spv
+
+# vender example stuff
+Myu/vendor/imgui/examples
