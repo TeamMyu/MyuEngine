@@ -112,14 +112,14 @@ namespace Myu::VulkanWrapper::Utils
 
     std::string errorString(VkResult errorCode);
 
-    void transitionImageLayout(const VulkanDevice& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-    VkCommandBuffer beginSingleTimeCommands(const VulkanDevice& device);
-    void endSingleTimeCommands(const VulkanDevice& device, VkCommandBuffer commandBuffer);
+    VkCommandBuffer beginSingleTimeCommands();
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
     void copyBufferToImage(const VulkanDevice& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
-    void createImageView(VkDevice device, VkImage image, VkImageView* pView, VkFormat format, VkImageAspectFlags aspectFlags);\
+    void createImageView(VkImage image, VkImageView* pView, VkFormat format, VkImageAspectFlags aspectFlags);
 
     void createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptorSet,  VkBuffer &uniformBuffer, VkImageView& imgView, VkSampler& sampler);
 
@@ -136,4 +136,8 @@ namespace Myu::VulkanWrapper::Utils
     void updateUniformBuffer(VkDevice device, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat);
 
     void bindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkDescriptorSet &descriptorSet);
+
+    void copyImage(const VkImage& srcImage, VkImageLayout srcLayout, VkImage& dstImage, VkImageLayout dstLayout);
+
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* pImage, VkDeviceMemory* pImageMemory);
 }

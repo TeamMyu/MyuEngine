@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vulkan.hpp"
+#include "../Core/Singleton.hpp"
 
 namespace Myu::VulkanWrapper
 {
@@ -32,7 +33,7 @@ namespace Myu::VulkanWrapper
         VkDevice                GetVkLogicalDevice() const { return m_Device; }
         VkQueue                 GetVkGraphicsQueue() const { return m_GraphicsQueue; }
         VkQueue                 GetVkPresentQueue() const { return m_PresentQueue; }
-        QueueFamilyIndices      GetQueueFamilyIndices() { return findQueueFamilies(m_PhysicalDevice); }
+        QueueFamilyIndices      GetQueueFamilyIndices() const { return m_QueueFamilyIndices; }
         SwapChainSupportDetails GetSwapChainDetails() { return querySwapChainSupport(m_PhysicalDevice); }
         VkCommandPool           GetVkCommandPool() const { return m_CommandPool; }
         VkDescriptorPool        GetVkDescriptorPool() const { return m_DescriptorPool; }

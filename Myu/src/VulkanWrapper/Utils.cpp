@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include "VulkanContext.hpp"
 
 namespace Myu::VulkanWrapper::Utils
 {
@@ -353,16 +354,16 @@ namespace Myu::VulkanWrapper::Utils
         }
     }
 
-    VkCommandBuffer beginSingleTimeCommands(const VulkanDevice& device)
+    VkCommandBuffer beginSingleTimeCommands()
     {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool        = device.GetVkCommandPool();
+        allocInfo.commandPool        = VulkanContext::getInstance()->getCommandPool();
         allocInfo.commandBufferCount = 1;
 
         VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(device.GetVkLogicalDevice(), &allocInfo, &commandBuffer);
+        vkAllocateCommandBuffers(VulkanContext::getInstance()->getDevice(), &allocInfo, &commandBuffer);
 
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -373,7 +374,7 @@ namespace Myu::VulkanWrapper::Utils
         return commandBuffer;
     }
 
-    void endSingleTimeCommands(const VulkanDevice& device, VkCommandBuffer commandBuffer)
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer)
     {
         vkEndCommandBuffer(commandBuffer);
 
@@ -381,16 +382,18 @@ namespace Myu::VulkanWrapper::Utils
         submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers    = &commandBuffer;
+        
+        auto device = VulkanContext::getInstance()->getDevice();
+        auto graphicsQueue = VulkanContext::getInstance()->getGraphicsQueue();
+        vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(graphicsQueue);
 
-        vkQueueSubmit(device.GetVkGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(device.GetVkGraphicsQueue());
-
-        vkFreeCommandBuffers(device.GetVkLogicalDevice(), device.GetVkCommandPool(), 1, &commandBuffer);
+        vkFreeCommandBuffers(device, VulkanContext::getInstance()->getCommandPool(), 1, &commandBuffer);
     }
 
-    void transitionImageLayout(const VulkanDevice& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+    void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
         barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -425,6 +428,14 @@ namespace Myu::VulkanWrapper::Utils
             sourceStage      = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         }
+        else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+            
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        }
         else
         {
             throw std::invalid_argument("unsupported layout transition!");
@@ -441,12 +452,12 @@ namespace Myu::VulkanWrapper::Utils
                              1,
                              &barrier);
 
-        endSingleTimeCommands(device, commandBuffer);
+        endSingleTimeCommands(commandBuffer);
     }
 
     void copyBufferToImage(const VulkanDevice& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkBufferImageCopy region{};
         region.bufferOffset                    = 0;
@@ -461,10 +472,10 @@ namespace Myu::VulkanWrapper::Utils
 
         vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-        endSingleTimeCommands(device, commandBuffer);
+        endSingleTimeCommands(commandBuffer);
     }
 
-    void createImageView(VkDevice device, VkImage image, VkImageView* pView, VkFormat format, VkImageAspectFlags aspectFlags)
+    void createImageView(VkImage image, VkImageView* pView, VkFormat format, VkImageAspectFlags aspectFlags)
     {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -477,7 +488,7 @@ namespace Myu::VulkanWrapper::Utils
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount     = 1;
 
-        if (vkCreateImageView(device, &viewInfo, nullptr, pView) != VK_SUCCESS)
+        if (vkCreateImageView(VulkanContext::getInstance()->getDevice(), &viewInfo, nullptr, pView) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create texture image view!");
         }
@@ -604,13 +615,13 @@ namespace Myu::VulkanWrapper::Utils
 
     void copyBuffer(const VulkanDevice& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkBufferCopy copyRegion{};
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-        endSingleTimeCommands(device, commandBuffer);
+        endSingleTimeCommands(commandBuffer);
     }
 
     void updateUniformBuffer(VkDevice device, VkDeviceMemory &uniformBuffersMemory, glm::mat4 modelMat, glm::mat4 viewMat, glm::mat4 projMat)
@@ -636,5 +647,54 @@ namespace Myu::VulkanWrapper::Utils
                                 &descriptorSet,
                                 0,
                                 nullptr);
+    }
+
+    void copyImage(const VkImage& srcImage, VkImageLayout srcLayout, VkImage& dstImage, VkImageLayout dstLayout)
+    {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        
+        vkCmdCopyImage(commandBuffer, srcImage, srcLayout, dstImage, dstLayout, 0, nullptr);
+        
+        endCommandBuffer(commandBuffer);
+    }
+
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* pImage, VkDeviceMemory* pImageMemory)
+    {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType     = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width  = width;
+        imageInfo.extent.height = height;
+        imageInfo.extent.depth  = 1;
+        imageInfo.mipLevels     = 1;
+        imageInfo.arrayLayers   = 1;
+        imageInfo.format        = format;
+        imageInfo.tiling        = tiling;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage         = usage;
+        imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+        
+        auto device = VulkanContext::getInstance()->getDevice();
+        if (vkCreateImage(device, &imageInfo, nullptr, pImage) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create image!");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, *pImage, &memRequirements);
+        
+        auto physicalDevice = VulkanContext::getInstance()->getPhysicalDevice();
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize  = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+        if (vkAllocateMemory(device, &allocInfo, nullptr, pImageMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(device, *pImage, *pImageMemory, 0);
     }
 }
