@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Myu::VulkanWrapper::Utils
+namespace Myu::VulkanWrapper::Init
 {
     inline VkDescriptorBufferInfo createDescBufferInfo(VkBuffer& buffer, VkDeviceSize offset, VkDeviceSize range)
     {
@@ -21,4 +21,10 @@ namespace Myu::VulkanWrapper::Utils
         imageInfo.sampler     = sampler;
         return imageInfo;
     }
+
+    VkDescriptorPool createDefaultDescPool(VkDevice device);
+
+    void createCommandPool(VkCommandPool* commandPool, VkCommandPoolCreateFlags flags);
+
+    void createCommandBuffers(VkCommandBuffer* pCommandBuffer, uint32_t commandBufferCount, VkCommandPool &commandPool);
 }
