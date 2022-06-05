@@ -78,7 +78,7 @@ namespace Myu::VulkanWrapper
     };
     struct PushConstantObject
     {
-        glm::vec2 offset;
+        glm::vec3 offset;
         alignas(16) glm::vec3 color;
     };
     struct UniformBufferObject

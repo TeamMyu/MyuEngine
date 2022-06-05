@@ -12,7 +12,7 @@
 #include "imgui_impl_vulkan.h"
 #include "imgui_internal.h"
 
-
+#include <glm/gtc/type_ptr.hpp>
 
 VkPipelineLayout      pipelineLayout;
 VkPipeline            graphicsPipeline;
@@ -38,6 +38,13 @@ std::vector<VkFramebuffer> gMainFrameBuffers;
 std::vector<VkDescriptorSet> gMainFrameDescSets;
 
 static ImGui_ImplVulkanH_Window g_MainWindowData;
+
+float outline_thick = 0.0f;
+float outline_color[3] = {0.0f,};
+int celshade_steps = 0;
+float celshade_expo     = 1.0f;
+float celshade_offset     = 1.0f;
+float celshade_color[3] = {0.0f, 1.0f, 1.0f};
 
 namespace Myu
 {
@@ -181,6 +188,23 @@ namespace Myu
                 ImGui::End();
                 
                 ImGui::Begin("Properties");
+                if (ImGui::CollapsingHeader("Outline Component"))
+                {
+                    ImGui::SliderFloat("thickness", &outline_thick, 0.0, 0.3);
+                    ImGui::ColorEdit3("outline color", outline_color);   
+                }
+
+                if (ImGui::CollapsingHeader("CelShade Component"))
+                {
+                    ImGui::SliderInt("steps", &celshade_steps, 0.0, 5);
+                    ImGui::SliderFloat("step min", &celshade_color[0], 0.0, 5.0);
+                    ImGui::SliderFloat("step max", &celshade_color[1], 0.0, 5.0);
+                    ImGui::SliderFloat("step exponent", &celshade_color[2], 0.0, 3.0);
+
+                    ImGui::SliderFloat("shadow offset", &celshade_offset, 0.0, 3.0);
+                    ImGui::SliderFloat("shadow exponent", &celshade_expo, 0.0, 3.0);
+                }
+
                 ImGui::End();
                 
                 ImGui::Begin("Scene");
@@ -242,20 +266,43 @@ namespace Myu
         auto model2 = std::make_shared<Model>(m_Device, "models/paimon.obj");
         auto testGO2 = GameObject::createGameObject();
         testGO2.model = model2;
-        testGO2.transform.position = glm::vec3(0.f, 0.f, 0.f);
+        testGO2.transform.scale    = glm::vec3(0.1);
+        testGO2.transform.rotation = glm::vec3(0.0, 3.14, 0.0);
+        testGO2.transform.position = glm::vec3(0.f, -0.5f, 0.f);
         gameObjects.push_back(std::move(testGO2));
     }
 
     void Application::renderGameObjects(VkCommandBuffer commandBuffer)
     {
+        m_pOutlinePipe->bind(commandBuffer);
+
+        VulkanWrapper::PushConstantObject push;
+        push.color = glm::make_vec3(outline_color);
+        push.offset = glm::vec3(outline_thick, 0.0, 0.0);
+
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,0, sizeof(VulkanWrapper::PushConstantObject), &push);
+        for (auto& go : gameObjects)
+        {
+            // FIMXE: HACK
+            go.model->bind(commandBuffer, pipelineLayout, go.transform.toMat4(), camera.getView(), camera.getProjection());
+
+            go.model->draw(commandBuffer);
+        }
+
         m_pPipeline->bind(commandBuffer);
         
+        VulkanWrapper::PushConstantObject push2;
+        push2.color = glm::make_vec3(celshade_color);
+        push2.offset = glm::vec3(celshade_steps, celshade_expo, celshade_offset);
+
+        vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanWrapper::PushConstantObject), &push2);
         for (auto& go : gameObjects)
         {
             // FIMXE: HACK
             go.model->bind(commandBuffer, pipelineLayout, go.transform.toMat4(), camera.getView(), camera.getProjection());
             
             go.model->draw(commandBuffer);
+
         }
     }
 
@@ -270,8 +317,8 @@ namespace Myu
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &gameObjects[0].model->getMeshes()[0].getMaterial().getDescriptorLayout(), &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
         
         VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
-        pipelineSpec.vertFilepath   = "shaders/vert.spv";
-        pipelineSpec.fragFilepath   = "shaders/frag.spv";
+        pipelineSpec.vertFilepath   = "shaders/shader.vert.spv";
+        pipelineSpec.fragFilepath   = "shaders/shader.frag.spv";
         pipelineSpec.pipelineLayout = pipelineLayout;
         
         // viewport info setup
@@ -290,6 +337,18 @@ namespace Myu
         pipelineSpec.viewportInfo.pScissors = &scissor;
         
         m_pPipeline = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+
+        pipelineSpec.vertFilepath = "shaders/test.vert.spv";
+        pipelineSpec.fragFilepath = "shaders/test.frag.spv";
+
+        pipelineSpec.depthStencilInfo.back.compareOp   = VK_COMPARE_OP_NOT_EQUAL;
+        pipelineSpec.depthStencilInfo.back.failOp      = VK_STENCIL_OP_KEEP;
+        pipelineSpec.depthStencilInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
+        pipelineSpec.depthStencilInfo.back.passOp      = VK_STENCIL_OP_REPLACE;
+        pipelineSpec.depthStencilInfo.front            = pipelineSpec.depthStencilInfo.back;
+        pipelineSpec.depthStencilInfo.depthTestEnable  = VK_FALSE;
+
+        m_pOutlinePipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
         
         // create texture relevent resources
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
@@ -310,7 +369,7 @@ namespace Myu
         gMainMemories.resize(imageCount);
         for (int i = 0; i < imageCount; i++)
         {
-            VulkanWrapper::Utils::createImage(m_Swapchain.GetVkExtent2D().width, m_Swapchain.GetVkExtent2D().height, VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &gMainImages[i], &gMainMemories[i]);
+            VulkanWrapper::Utils::createImage(m_Swapchain.GetVkExtent2D().width, m_Swapchain.GetVkExtent2D().height, VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &gMainImages[i], &gMainMemories[i]);
             VulkanWrapper::Utils::transitionImageLayout(gMainImages[i], VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
         
