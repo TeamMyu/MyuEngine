@@ -52,16 +52,16 @@ namespace Myu::VulkanWrapper
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                     mImage, mImageMemory);
 
-        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        Utils::transitionImageLayout( mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
         
         Utils::copyBufferToImage(*mDevice, stagingBuffer, mImage, TO_UINT32(texWidth), TO_UINT32(texHeight));
         
-        Utils::transitionImageLayout(*mDevice, mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        Utils::transitionImageLayout(mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         vkDestroyBuffer(device->GetVkLogicalDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device->GetVkLogicalDevice(), stagingBufferMemory, nullptr);
         
-        Utils::createImageView(device->GetVkLogicalDevice(), mImage, &mImageView, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+        Utils::createImageView(mImage, &mImageView, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
         
         // get maxSamplerAnisotropy for sampler
         VkPhysicalDeviceProperties properties{};
