@@ -67,5 +67,9 @@ namespace Myu
         
         void loadGameObjects();
         void renderGameObjects(VkCommandBuffer commandBuffer);
+        
+        void setupImGUI();
+        
+        void setupVulkan();
     };
 }
