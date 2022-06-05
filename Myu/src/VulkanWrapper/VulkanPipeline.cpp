@@ -9,23 +9,13 @@ namespace Myu::VulkanWrapper
                                    const VulkanPipelineSpecification& VulkanPipelineSpecification)
         : m_rVulkanDevice{vulkanDevice}
     {
-#pragma region vertex_stage
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(VulkanPipelineSpecification.attributeDescriptions.size());
-        vertexInputInfo.vertexBindingDescriptionCount   = static_cast<uint32_t>(VulkanPipelineSpecification.bindingDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions    = VulkanPipelineSpecification.attributeDescriptions.data();
-        vertexInputInfo.pVertexBindingDescriptions      = VulkanPipelineSpecification.bindingDescriptions.data();
-#pragma endregion
-
         if (VulkanPipelineSpecification.pipelineType == VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO)
         {
             VkGraphicsPipelineCreateInfo pipelineInfo{};
             pipelineInfo.sType               = VulkanPipelineSpecification.pipelineType;
             pipelineInfo.stageCount          = VulkanPipelineSpecification.shaderStages.size();
             pipelineInfo.pStages             = VulkanPipelineSpecification.shaderStages.data();
-            pipelineInfo.pVertexInputState   = &vertexInputInfo;
+            pipelineInfo.pVertexInputState   = &VulkanPipelineSpecification.vertexInputInfo;
             pipelineInfo.pInputAssemblyState = &VulkanPipelineSpecification.inputAssemblyInfo;
             pipelineInfo.pViewportState      = &VulkanPipelineSpecification.viewportInfo;
             pipelineInfo.pRasterizationState = &VulkanPipelineSpecification.rasterizationInfo;
@@ -83,6 +73,8 @@ namespace Myu::VulkanWrapper
     VulkanPipelineSpecification::VulkanPipelineSpecification()
     {
         this->pipelineType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+        this->vertexInputInfo.sType                     = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
         inputAssemblyInfo.sType =
             VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

@@ -114,10 +114,10 @@ namespace Myu::VulkanWrapper
         alignas(16) glm::mat4 model;
         alignas(16) glm::mat4 view;
         alignas(16) glm::mat4 proj;
-        alignas(16) glm::vec4 effects[10];
-        PointLight  pLight[10];
-        GlobalLight gLight[10];
-        Material    mat{1.0};
+        //alignas(16) glm::vec4 effects[10];
+        //PointLight  pLight[10];
+        //GlobalLight gLight[10];
+        //Material    mat{1.0};
     };
     struct QueueFamilyIndices
     {

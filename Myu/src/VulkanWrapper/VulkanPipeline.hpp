@@ -14,9 +14,7 @@ namespace Myu::VulkanWrapper
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
 
-        std::vector<VkVertexInputBindingDescription>   bindingDescriptions{};
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
-
+        VkPipelineVertexInputStateCreateInfo           vertexInputInfo{};
         VkPipelineViewportStateCreateInfo              viewportInfo{};
         VkPipelineInputAssemblyStateCreateInfo         inputAssemblyInfo{};
         VkPipelineRasterizationStateCreateInfo         rasterizationInfo{};

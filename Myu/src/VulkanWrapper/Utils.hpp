@@ -112,6 +112,7 @@ namespace Myu::VulkanWrapper::Utils
     std::string errorString(VkResult errorCode);
 
     void transitionImageLayout(const VulkanDevice& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void transitionImageLayout(const VulkanDevice& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlagBits flag);
 
     VkCommandBuffer beginSingleTimeCommands(const VulkanDevice& device);
     void            endSingleTimeCommands(const VulkanDevice& device, VkCommandBuffer commandBuffer);

@@ -36,11 +36,6 @@ namespace Myu
         VulkanWrapper::VulkanSwapchain m_Swapchain{m_Device, m_Window.GetVkExtent2D()};
         Renderer  m_Renderer{m_Device};
 
-        VkImage        textureImage;
-        VkDeviceMemory textureImageMemory;
-        VkImageView    textureImageView;
-        VkSampler      textureSampler;
-
         void createImGuiCommandBuffers();
         void createImGuiFramebuffers();
         void createImGuiRenderPass();

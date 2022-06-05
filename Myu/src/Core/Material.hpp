@@ -21,8 +21,6 @@ namespace Myu
         VkBuffer getUniformBuffer() {return mUniformBuffer;}
         VkDeviceMemory& getUniformBufferMemory() {return mUniformBufferMemory;}
 
-        VulkanWrapper::VulkanTexture  inputTexture;
-        VulkanWrapper::VulkanTexture outputTexture;
     private:
         std::vector<VulkanWrapper::VulkanTexture> mTextures;
         VkDescriptorSet mDescriptorSet;

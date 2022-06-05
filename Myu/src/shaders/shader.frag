@@ -10,7 +10,7 @@ layout(location = 0) out vec4 outColor;
 
 
 void main() {
-    //outColor = vec4(fragColor + texture(diffuseMap, fragCoord).rgb, 1.0);
-    outColor = vec4(0.1 * texture(diffuseMap, fragCoord).rgb + texture(computeMap, fragCoord).rgb, 1.0);
+    outColor = vec4(fragColor + texture(diffuseMap, fragCoord).rgb, 1.0);
+    //outColor = vec4(0.1 * texture(diffuseMap, fragCoord).rgb + texture(computeMap, fragCoord).rgb, 1.0);
     //outColor = vec4(fragColor, 1.0);
 }

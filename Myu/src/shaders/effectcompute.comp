@@ -1,34 +1,33 @@
 #version 450
 
+struct Effect{
+	float id;
+	float targetID;
+    vec2 config[10]; // vec2(config index, config value)
+};
+
 layout (local_size_x = 16, local_size_y = 16) in;
 
-struct Plane{
+layout (binding = 0) uniform UBO
+{
 	mat4 model;
     mat4 view;
     mat4 proj;
-};
+} ubo;
 
-struct Effect{
-	float id;
-    vec2 config[ ]; // vec2(config index, config value)
-};
+layout (binding = 1, rgba8) uniform image2D positionMap;
+layout (binding = 2, rgba8) uniform image2D normalMap;
+layout (binding = 3, rgba8) uniform image2D colorMap;
+layout (binding = 4, rgba8) uniform image2D uvMap;
 
-layout (std430, binding = 3) buffer Effects
+layout (std430, binding = 5) buffer Effects
 {
-	Plane plane;
-	image2D maps[ ]; // Albedo(Color), Ambient, Diffuse, Specular, Ambient, Bump . . .
-	Effect effect;
+	float effects[ ]; 
 };
 
 void main()
 {
-	//vec3 rgb2 = imageLoad(samplerArray, ivec3(1,1,1)).rgb;
-	//vec3 rgb = imageLoad(samplerArray, ivec3(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y, 1)).rgb;
-
-
-	//outUV = vec3(inUV, ubo.instance[gl_InstanceIndex].arrayIndex.x);
-	//mat4 modelView = ubo.view * ubo.instance[gl_InstanceIndex].model;
-	//gl_Position = ubo.projection * modelView * vec4(inPos, 1.0);
-
-	//imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), res);
+	vec4 c = imageLoad(colorMap, ivec2(gl_GlobalInvocationID.xy)).rgba;
+	c = vec4(1.0, 0.0, 0.0, 1.0);
+	imageStore(colorMap, ivec2(gl_GlobalInvocationID.xy), c);
 }
