@@ -106,23 +106,20 @@ namespace Myu
         //FIXME: HACK
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &gameObjects[0].model->getMeshes()[0].getMaterial().getDescriptorLayout(), &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
 
-        //offscreen.width  = m_Swapchain.GetVkExtent2D().width;
-        //offscreen.height = m_Swapchain.GetVkExtent2D().height;
+        offscreen.width  = m_Swapchain.GetVkExtent2D().width;
+        offscreen.height = m_Swapchain.GetVkExtent2D().height;
 
-        offscreen.width = 1920;
-        offscreen.height = 1080;
-        
         // create texture relevent resources
-        offscreen.normal.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-        offscreen.normal.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-        offscreen.normal.mSpec.imageLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        offscreen.normal.createTextureTarget(&m_Device, offscreen.width, offscreen.height, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-        // muset set image size to be frame buffer size
-
         offscreen.position.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
         offscreen.position.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
         offscreen.position.mSpec.imageLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         offscreen.position.createTextureTarget(&m_Device, offscreen.width, offscreen.height, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
+        // muset set image size to be frame buffer size
+
+        offscreen.normal.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+        offscreen.normal.mSpec.imageUsageFlags       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+        offscreen.normal.mSpec.imageLayout           = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        offscreen.normal.createTextureTarget(&m_Device, offscreen.width, offscreen.height, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
         // muset set image size to be frame buffer size
 
         offscreen.color.mSpec.samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
@@ -168,8 +165,8 @@ namespace Myu
 
         // Formats
         attachmentDescs[0].format = offscreen.position.format;
-        attachmentDescs[1].format = offscreen.normal.format;
-        attachmentDescs[2].format = offscreen.color.format;
+        attachmentDescs[2].format = offscreen.normal.format;
+        attachmentDescs[1].format = offscreen.color.format;
         attachmentDescs[3].format = offscreen.uv.format;
         attachmentDescs[4].format = offscreen.depth.format;
 
@@ -221,8 +218,8 @@ namespace Myu
 
         std::array<VkImageView, 5> attachments;
         attachments[0] = offscreen.position.mImageView;
-        attachments[1] = offscreen.normal.mImageView;
-        attachments[2] = offscreen.color.mImageView;
+        attachments[2] = offscreen.normal.mImageView;
+        attachments[1] = offscreen.color.mImageView;
         attachments[3] = offscreen.uv.mImageView;
         attachments[4] = offscreen.depth.mImageView;
 
@@ -323,10 +320,10 @@ namespace Myu
 
             pipelineSpec.shaderStages.push_back(fragShaderStageInfo);
             pipelineSpec.shaderStages.push_back(vertShaderStageInfo);
-            pipelineSpec.rasterizationInfo.cullMode         = VK_CULL_MODE_FRONT_BIT;
+            pipelineSpec.rasterizationInfo.cullMode         = VK_CULL_MODE_NONE;
             pipelineSpec.depthStencilInfo.stencilTestEnable = VK_TRUE;
             pipelineSpec.depthStencilInfo.depthWriteEnable  = VK_TRUE;
-            pipelineSpec.depthStencilInfo.back.compareOp    = VK_COMPARE_OP_LESS_OR_EQUAL;
+            pipelineSpec.depthStencilInfo.back.compareOp    = VK_COMPARE_OP_ALWAYS;
             pipelineSpec.depthStencilInfo.back.failOp       = VK_STENCIL_OP_REPLACE;
             pipelineSpec.depthStencilInfo.back.depthFailOp  = VK_STENCIL_OP_REPLACE;
             pipelineSpec.depthStencilInfo.back.passOp       = VK_STENCIL_OP_REPLACE;
@@ -382,7 +379,7 @@ namespace Myu
             pipelineSpec.shaderStages.push_back(fragShaderStageInfo);
             pipelineSpec.shaderStages.push_back(vertShaderStageInfo);
 
-            pipelineSpec.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+            pipelineSpec.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 
             VkPipelineColorBlendAttachmentState blendAttach1{};
             blendAttach1.colorWriteMask = 0xf;
@@ -520,8 +517,8 @@ namespace Myu
             VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
                 .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
                 .bindImage(&positionImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
-                .bindImage(&colorImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
                 .bindImage(&normalImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
+                .bindImage(&colorImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
                 .bindImage(&uvImageInfo, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT)
                 .build(compute.descriptorSet, compute.descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
 
@@ -619,25 +616,18 @@ namespace Myu
         auto currentFrame  = m_Renderer.currentFrame;
         auto currentBuffer = m_Renderer.GetCurrentBuffer();
 
-        //vkResetCommandBuffer(currentBuffer, 0);            // delete
-        //vkResetCommandBuffer(offscreen.commandBuffer, 0);  // delete
-        //vkResetCommandBuffer(compute.commandBuffer, 0);    // delete
+        vkResetCommandBuffer(currentBuffer, 0);            // delete
+        vkResetCommandBuffer(offscreen.commandBuffer, 0);  // delete
+        vkResetCommandBuffer(compute.commandBuffer, 0);    // delete
 
         // calc delta time
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto deltaTime   = std::chrono::duration<float, std::chrono::seconds::period>(startTime - currentTime).count();
         startTime        = currentTime;
 
-        uint32_t imageIndex;
-        VkResult result = m_Swapchain.AcquireNextImage(&imageIndex, currentFrame);
 
-        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-        {
-            throw std::runtime_error("failed to acquire swap chain image!");
-        }
-
-        // to all command buffers
-        m_Renderer.BeginDraw();
+        //vkQueueWaitIdle(compute.queue);
+        //vkQueueWaitIdle(m_Device.GetVkGraphicsQueue());
 
         VkCommandBufferBeginInfo cmdBufferBeginInfo{};
         cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -646,12 +636,9 @@ namespace Myu
 
         vkCmdBindPipeline(compute.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, compute.pipelines[compute.pipelineIndex]->GetVulkanPipeline());
 
-        for (auto& go : gameObjects)
-        {
-            for (auto mesh : go.model->getMeshes())
-            {
+
                 VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = mesh.getMaterial().getUniformBuffer();
+                bufferInfo.buffer = gameObjects[0].model->getMeshes()[0].getMaterial().getUniformBuffer();
                 bufferInfo.offset = 0;
                 bufferInfo.range  = sizeof(VulkanWrapper::UniformBufferObject);
 
@@ -745,13 +732,9 @@ namespace Myu
                     1,
                     &imageMemoryBarrier);
                 */
-            }
-        }
+
 
         vkEndCommandBuffer(compute.commandBuffer);
-
-        //vkQueueWaitIdle(compute.queue);
-        //vkQueueWaitIdle(m_Device.GetVkGraphicsQueue());
 
         VkCommandBufferBeginInfo cmdBufInfo{};
         cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -801,23 +784,34 @@ namespace Myu
 
         vkEndCommandBuffer(offscreen.commandBuffer);
 
+        uint32_t imageIndex;
+        VkResult result = m_Swapchain.AcquireNextImage(&imageIndex, currentFrame);
+
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+        {
+            throw std::runtime_error("failed to acquire swap chain image!");
+        }
+
+
+        m_Renderer.BeginDraw();
+
         m_Swapchain.BeginRenderPass(currentBuffer, imageIndex);
 
-        VkDescriptorImageInfo colorMapInfo{};
-        colorMapInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        colorMapInfo.imageView   = offscreen.color.getImageView();
-        colorMapInfo.sampler     = offscreen.color.getSampler();
+        VkDescriptorImageInfo colorMapInfo2{};
+        colorMapInfo2.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        colorMapInfo2.imageView   = offscreen.color.getImageView();
+        colorMapInfo2.sampler     = offscreen.color.getSampler();
 
-        std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
+        std::array<VkWriteDescriptorSet, 1> writeDescriptorSets2{};
 
-        writeDescriptorSets[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeDescriptorSets[0].dstSet          = 0;
-        writeDescriptorSets[0].dstBinding      = 0;
-        writeDescriptorSets[0].descriptorCount = 1;
-        writeDescriptorSets[0].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        writeDescriptorSets[0].pImageInfo      = &colorMapInfo;
+        writeDescriptorSets2[0].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescriptorSets2[0].dstSet          = 0;
+        writeDescriptorSets2[0].dstBinding      = 0;
+        writeDescriptorSets2[0].descriptorCount = 1;
+        writeDescriptorSets2[0].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        writeDescriptorSets2[0].pImageInfo      = &colorMapInfo2;
 
-        m_Device.vkCmdPushDescriptorSetKHR(currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipelineLayout, 0, 1, writeDescriptorSets.data());
+        m_Device.vkCmdPushDescriptorSetKHR(currentBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics.pipelineLayout, 0, 1, writeDescriptorSets2.data());
 
         m_pPipeline->bind(currentBuffer);
 
@@ -828,8 +822,8 @@ namespace Myu
 
         // to all command buffers
 
-        //vkWaitForFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence, VK_TRUE, UINT64_MAX);
-        //vkResetFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence);
+        vkWaitForFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_Device.GetVkLogicalDevice(), 1, &compute.fence);
 
         VkPipelineStageFlags offscreenwaitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         // Submit offscreen commands
@@ -855,7 +849,7 @@ namespace Myu
         computeSubmitInfo.pWaitDstStageMask    = &waitStageMask;
         computeSubmitInfo.signalSemaphoreCount = 1;
         computeSubmitInfo.pSignalSemaphores    = &compute.semaphore;  // rendering finish singal 받는 semaphore pointer
-        VK_CHECK_RESULT(vkQueueSubmit(compute.queue, 1, &computeSubmitInfo, /*compute.fence*/ VK_NULL_HANDLE));
+        VK_CHECK_RESULT(vkQueueSubmit(compute.queue, 1, &computeSubmitInfo, compute.fence));
 
         VkPipelineStageFlags graphicsWaitStageMasks[]   = {VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSemaphore          graphicsWaitSemaphores[]   = {compute.semaphore, m_Swapchain.imageAvailableSemaphores[currentFrame]};   // 컴퓨트가 present가 끝나면
