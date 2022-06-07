@@ -16,6 +16,7 @@ namespace Myu
         VulkanWrapper::VulkanTexture specularTexture;
         VulkanWrapper::VulkanTexture normalTexture;
 
+        diffuseTexture.mSpec.imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         diffuseTexture.loadFromFile(device, (const char*)diffuseTexname.c_str());
         mTextures.push_back(diffuseTexture);
 
@@ -38,9 +39,12 @@ namespace Myu
         descLayoutCache.init(device->GetVkLogicalDevice());
 
         auto uniformBufferInfo = VulkanWrapper::Utils::createDescBufferInfo(mUniformBuffer, 0, sizeof(VulkanWrapper::UniformBufferObject));
+
+        auto TextureInfo = VulkanWrapper::Utils::createDescImageInfo(mTextures[0].getImageView(), mTextures[0].getSampler());
  
         auto builder = VulkanWrapper::Utils::DescriptorBuilder::begin(&descLayoutCache, &descAllocator)
                            .bindBuffer(&uniformBufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                           .bindImage(&TextureInfo, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
                            .build(mDescriptorSet, mDescriptorLayout);
     }
 

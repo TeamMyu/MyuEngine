@@ -215,6 +215,8 @@ namespace Myu::VulkanWrapper::Utils
 
         bindings.push_back(newBinding);
 
+        if (bufferInfo == nullptr) return *this;
+
         VkWriteDescriptorSet newWrite{};
         newWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         newWrite.pNext = nullptr;
@@ -239,6 +241,8 @@ namespace Myu::VulkanWrapper::Utils
         newBinding.binding            = bindings.size();
 
         bindings.push_back(newBinding);
+
+        if (imageInfo == nullptr) return *this;
 
         VkWriteDescriptorSet newWrite{};
         newWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -811,6 +815,12 @@ namespace Myu::VulkanWrapper::Utils
     void createUniformBuffer(const VulkanDevice& device, VkBuffer* pBuffer, VkDeviceMemory* pMemory)
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+        createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pBuffer, pMemory);
+    }
+
+    void createUniformBuffer(const VulkanDevice& device, VkBuffer* pBuffer, VkDeviceMemory* pMemory, size_t allocSize)
+    {
+        VkDeviceSize bufferSize = allocSize;
         createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, pBuffer, pMemory);
     }
 

@@ -21,6 +21,9 @@ namespace Myu {
       const glm::mat4& getProjection() const { return projectionMatrix; }
       const glm::mat4& getView() const { return viewMatrix; }
 
+      glm::vec3 camera_position{0.0f, 0.5f, +0.0f};
+      glm::vec3 camera_rotation{1.0f, 0.8f, 1.0f};
+
      private:
       glm::mat4 projectionMatrix{1.f};
       glm::mat4 viewMatrix{1.f};
