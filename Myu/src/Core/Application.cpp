@@ -270,8 +270,8 @@ namespace Myu
         VulkanWrapper::createPipelineLayout(m_Device.GetVkLogicalDevice(), &gameObjects[0].model->getMeshes()[0].getMaterial().getDescriptorLayout(), &pipelineLayout, sizeof(VulkanWrapper::PushConstantObject));
         
         VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
-        pipelineSpec.vertFilepath   = "shaders/vert.spv";
-        pipelineSpec.fragFilepath   = "shaders/frag.spv";
+        pipelineSpec.vertFilepath   = "shaders/shader.vert.spv";
+        pipelineSpec.fragFilepath   = "shaders/shader.frag.spv";
         pipelineSpec.pipelineLayout = pipelineLayout;
         
         // viewport info setup
