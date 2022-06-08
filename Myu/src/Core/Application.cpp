@@ -310,7 +310,7 @@ namespace Myu
         gMainMemories.resize(imageCount);
         for (int i = 0; i < imageCount; i++)
         {
-            VulkanWrapper::Utils::createImage(m_Swapchain.GetVkExtent2D().width, m_Swapchain.GetVkExtent2D().height, VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &gMainImages[i], &gMainMemories[i]);
+            VulkanWrapper::Utils::createImage(m_Swapchain.GetVkExtent2D().width, m_Swapchain.GetVkExtent2D().height, VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &gMainImages[i], &gMainMemories[i]);
             VulkanWrapper::Utils::transitionImageLayout(gMainImages[i], VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
         
