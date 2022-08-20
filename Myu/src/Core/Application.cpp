@@ -1,6 +1,7 @@
 #include "Application.hpp"
 #include "Camera.hpp"
 #include "KeyboardListener.hpp"
+#include "MouseListener.hpp"
 
 #include <chrono>
 #include "../VulkanWrapper/VulkanTexture.hpp"
@@ -23,6 +24,7 @@ VkImageView    textureImageView;
 VkSampler      textureSampler;
 std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 Myu::KeyboardListener keyboardListener {};
+Myu::MouseListener mouseListener {};
 Myu::Camera camera = Myu::Camera();
 
 bool imGUIFlag = true;
@@ -117,6 +119,7 @@ namespace Myu
         // process keyboard event
         for (auto& go : gameObjects)
         {
+            mouseListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
             keyboardListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
         }
 
@@ -172,8 +175,70 @@ namespace Myu
                 ImGui::DockBuilderDockWindow("Scene", dock_main_id);
                 ImGui::DockBuilderFinish(dockspace_id);
                 
-                ImGui::DockSpace(dockspace_id); // 이게 왜 선행되서 불려야하는걸까??...
+                ImGui::DockSpace(dockspace_id); // ?�게 ???�행?�서 불려?�하?�걸�??...
                 ImGui::Begin("Hierarchy");
+
+                static bool check = false;
+                static bool exec_once = false;
+                ImGui::Checkbox("Polygon mode", &check);
+
+                if (check) {
+                    if (!exec_once) {
+                        std::cout << "on" << std::endl;
+                        exec_once = true;
+                    }
+
+                    VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
+                    pipelineSpec.vertFilepath = "shaders/shader.vert.spv";
+                    pipelineSpec.fragFilepath = "shaders/shader.frag.spv";
+                    pipelineSpec.pipelineLayout = pipelineLayout;
+                    pipelineSpec.rasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
+                    // viewport info setup
+                    VkViewport viewport{};
+                    viewport.x = 0.0f;
+                    viewport.y = 0.0f;
+                    viewport.width = (float)m_Swapchain.GetVkExtent2D().width;
+                    viewport.height = (float)m_Swapchain.GetVkExtent2D().height;
+                    viewport.minDepth = 0.0f;
+                    viewport.maxDepth = 1.0f;
+                    pipelineSpec.viewportInfo.pViewports = &viewport;
+
+                    VkRect2D scissor{};
+                    scissor.offset = { 0, 0 };
+                    scissor.extent = m_Swapchain.GetVkExtent2D();
+                    pipelineSpec.viewportInfo.pScissors = &scissor;
+
+                    m_pNewPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+
+                } else {
+                    if (exec_once) {
+                        std::cout << "off" << std::endl;
+                        exec_once = false;
+                    }
+
+                    VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
+                    pipelineSpec.vertFilepath = "shaders/shader.vert.spv";
+                    pipelineSpec.fragFilepath = "shaders/shader.frag.spv";
+                    pipelineSpec.pipelineLayout = pipelineLayout;
+                    pipelineSpec.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
+                    // viewport info setup
+                    VkViewport viewport{};
+                    viewport.x = 0.0f;
+                    viewport.y = 0.0f;
+                    viewport.width = (float)m_Swapchain.GetVkExtent2D().width;
+                    viewport.height = (float)m_Swapchain.GetVkExtent2D().height;
+                    viewport.minDepth = 0.0f;
+                    viewport.maxDepth = 1.0f;
+                    pipelineSpec.viewportInfo.pViewports = &viewport;
+
+                    VkRect2D scissor{};
+                    scissor.offset = { 0, 0 };
+                    scissor.extent = m_Swapchain.GetVkExtent2D();
+                    pipelineSpec.viewportInfo.pScissors = &scissor;
+
+                    m_pNewPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
+                }
+                    
                 ImGui::End();
 
                 ImGui::Begin("Log");
@@ -248,6 +313,11 @@ namespace Myu
 
     void Application::renderGameObjects(VkCommandBuffer commandBuffer)
     {
+        if (m_pNewPipe != nullptr) { // pipe swap
+            m_pPipeline = m_pNewPipe;
+            m_pNewPipe = nullptr;
+        }
+            
         m_pPipeline->bind(commandBuffer);
         
         for (auto& go : gameObjects)
