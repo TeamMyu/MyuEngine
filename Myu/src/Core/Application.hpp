@@ -72,5 +72,7 @@ namespace Myu
         void setupImGUI();
         
         void setupVulkan();
+
+        void treeChildren(ImGuiTreeNodeFlags node_flags, bool isOpen, int index);
     };
 }

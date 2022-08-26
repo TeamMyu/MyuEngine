@@ -43,6 +43,28 @@ static ImGui_ImplVulkanH_Window g_MainWindowData;
 
 namespace Myu
 {
+    void Application::treeChildren(ImGuiTreeNodeFlags node_flags, bool isOpen, int index)
+    {
+        if (isOpen)
+        {
+            for (int p = 0; p < gameObjects[index].model->getMeshes().size(); p++)
+            {
+                /*if (gameObjects[index].model->getMeshes().children.empty())*/
+                {
+                    node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Selected; // ImGuiTreeNodeFlags_Bullet
+                    ImGui::TreeNodeEx((void*)(intptr_t)p, node_flags, "sub go");
+                }
+                /*else
+                {
+                    bool o = ImGui::TreeNodeEx((void*)(intptr_t)p, node_flags, meshList[index].children[p].name.c_str());
+                    ImGui::TreePop();
+                    treeChildren(node_flags, o, p);
+                }*/
+            }
+            ImGui::TreePop();
+        }
+    }
+
     Application::Application()
     {
         setupVulkan();
@@ -239,6 +261,20 @@ namespace Myu
                     m_pNewPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
                 }
 
+                // ID를 사용하고 name을 표시해야함, name을 사용하고 name을 표시하는 방식으로 되어있음(중복 가능성)
+                // 아직까지 매쉬에 매쉬가 nested된 케이스를 못봐서 일단 단일루프로 처리
+                for (int i = 0; i < gameObjects.size(); i++)
+                {
+                    if (ImGui::TreeNode(gameObjects[i].model->name.c_str()))
+                    {             
+                        for (int p = 0; p < gameObjects[i].model->getMeshes().size(); p++)
+                        {
+                                ImGui::TreeNodeEx((void*)(intptr_t)p, ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen, gameObjects[i].model->getMeshes()[p].name.c_str());
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+
                 if (ImGui::Button("Add Object")) {
             
                     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj,", ".");
@@ -250,11 +286,13 @@ namespace Myu
                     // action if OK
                     if (ImGuiFileDialog::Instance()->IsOk())
                     {
-                        std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                        std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                        std::cout << filePath << std::endl;
-                        // action
+                        auto model2 = std::make_shared<Model>(m_Device, filePath);
+                        auto testGO2 = GameObject::createGameObject();
+                        testGO2.model = model2;
+                        testGO2.transform.position = glm::vec3(0.f, 0.f, 0.f);
+                        gameObjects.push_back(std::move(testGO2));
                     }
 
                     // close

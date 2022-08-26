@@ -25,6 +25,8 @@ namespace Myu
         Material& getMaterial() {return *material;}
         
         std::shared_ptr<Material> material;
+
+        std::string name;
     private:
         std::vector<VulkanWrapper::Vertex> mVertices;
         std::vector<uint32_t> mIndices;

@@ -19,6 +19,8 @@ namespace Myu
         void draw(VkCommandBuffer commandBuffer);
         std::vector<Mesh> getMeshes(){return mMeshes;}
 
+        std::string name;
+
     private:
         void loadModelFromPath(const std::string& MODEL_PATH, std::vector<VulkanWrapper::Vertex> &vertices, std::vector<uint32_t> &indices);
         

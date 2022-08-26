@@ -26,14 +26,13 @@ namespace Myu
             static id_t id = 0;
             return GameObject{id++};
         }
-        
+
         GameObject(const GameObject&) = delete;
         GameObject& operator=(const GameObject&) = delete;
         GameObject(GameObject&&) = default;
         GameObject& operator=(GameObject&&) = default;
         
         id_t getID() { return m_id; }
-        
         
         Transform transform;
         

@@ -61,6 +61,8 @@ namespace Myu
         std::vector<tinyobj::material_t> materials;
         std::string                      warn, err;
         
+        name = MODEL_PATH.substr(MODEL_PATH.find_last_of("/\\") + 1);
+
         std::string baseDir = "models/";
         if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str(), baseDir.c_str()))
         {
@@ -80,6 +82,7 @@ namespace Myu
             
             auto mat = std::make_shared<Material>(&m_rVulkanDevice, materials[counter++]);
             mesh.material = mat;
+            mesh.name = shape.name == "" ? name : shape.name;
             
             mesh.init(m_rVulkanDevice, shape.mesh.indices, attrib);
             mMeshes.push_back(mesh);
