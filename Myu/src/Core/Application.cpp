@@ -15,6 +15,8 @@
 
 #include "ImGuiFileDialog.h"
 
+#include <any>
+
 VkPipelineLayout      pipelineLayout;
 VkPipeline            graphicsPipeline;
 
@@ -40,6 +42,8 @@ std::vector<VkFramebuffer> gMainFrameBuffers;
 std::vector<VkDescriptorSet> gMainFrameDescSets;
 
 static ImGui_ImplVulkanH_Window g_MainWindowData;
+
+static int selectedgo = -1;
 
 namespace Myu
 {
@@ -267,6 +271,7 @@ namespace Myu
                 {
                     if (ImGui::TreeNode(gameObjects[i].model->name.c_str()))
                     {             
+                        selectedgo = i;
                         for (int p = 0; p < gameObjects[i].model->getMeshes().size(); p++)
                         {
                                 ImGui::TreeNodeEx((void*)(intptr_t)p, ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen, gameObjects[i].model->getMeshes()[p].name.c_str());
@@ -306,6 +311,12 @@ namespace Myu
                 ImGui::End();
                 
                 ImGui::Begin("Properties");
+                if (selectedgo != -1) {
+                    ImGui::CollapsingHeader("Transform");
+                    ImGui::Text("Position"); ImGui::SameLine(); ImGui::InputFloat3("p", (float*)&gameObjects[selectedgo].transform.position);
+                    ImGui::Text("Rotation"); ImGui::SameLine(); ImGui::InputFloat3("r", (float*)&gameObjects[selectedgo].transform.rotation);
+                    ImGui::Text("Scale"); ImGui::SameLine(); ImGui::InputFloat3("s", (float*)&gameObjects[selectedgo].transform.scale);
+                }
                 ImGui::End();
                 
                 ImGui::Begin("Scene");
