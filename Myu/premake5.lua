@@ -8,7 +8,8 @@ project "Myu"
    files {
     "src/**.hpp",
     "src/**.cpp",
-    "vendor/imgui/*.cpp"
+    "vendor/imgui/*.cpp",
+    "vendor/imgui_filebrowser/**"
     }
 
     defines { "MYU_BUILD_DLL" }
@@ -49,6 +50,7 @@ project "Myu"
           "%{IncludeDirs.ImGUI}",
           "%{IncludeDirs.stb_image}",
           "%{IncludeDirs.tiny_obj_loader}",
+          "%{IncludeDirs.ImGUI_filebrowser}",
           VulkanSDK_PATH.."/Include"
       }
       libdirs

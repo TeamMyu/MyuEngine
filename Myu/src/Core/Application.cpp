@@ -13,7 +13,7 @@
 #include "imgui_impl_vulkan.h"
 #include "imgui_internal.h"
 
-
+#include "ImGuiFileDialog.h"
 
 VkPipelineLayout      pipelineLayout;
 VkPipeline            graphicsPipeline;
@@ -238,7 +238,29 @@ namespace Myu
 
                     m_pNewPipe = new VulkanWrapper::VulkanPipeline(m_Device, m_Swapchain.GetVkRenderPass(), pipelineSpec);
                 }
-                    
+
+                if (ImGui::Button("Add Object")) {
+            
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".obj,", ".");
+                }
+
+                // display
+                if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+                {
+                    // action if OK
+                    if (ImGuiFileDialog::Instance()->IsOk())
+                    {
+                        std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                        std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+                        std::cout << filePath << std::endl;
+                        // action
+                    }
+
+                    // close
+                    ImGuiFileDialog::Instance()->Close();
+                }
+
                 ImGui::End();
 
                 ImGui::Begin("Log");
