@@ -15,7 +15,7 @@ layout(location = 3) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
-const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
+const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, 3.0, -1.0));
 
 void main() {
     

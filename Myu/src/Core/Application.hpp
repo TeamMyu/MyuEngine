@@ -29,9 +29,9 @@ namespace Myu
 
         const uint32_t    WIDTH  = 1280;
         const uint32_t    HEIGHT = 800;
-        const std::string tiTLE  = "Myu Engine";
+        const std::string TITLE  = "Myu Engine";
 
-        Window          m_Window{WIDTH, HEIGHT, "Test"};
+        Window          m_Window{WIDTH, HEIGHT, TITLE};
         VulkanWrapper::VulkanDevice    m_Device{m_Window.GetGLFWWindow()};
         VulkanWrapper::VulkanSwapchain m_Swapchain{m_Device, m_Window.GetVkExtent2D()};
         Renderer  m_Renderer{m_Device};

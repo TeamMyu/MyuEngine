@@ -46,6 +46,8 @@ float celshade_expo     = 1.0f;
 float celshade_offset     = 1.0f;
 float celshade_color[3] = {0.0f, 1.0f, 1.0f};
 
+bool sw[4]{ false, };
+
 namespace Myu
 {
     Application::Application()
@@ -127,7 +129,8 @@ namespace Myu
             keyboardListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
         }
 
-        renderGameObjects(currentBuffer);
+        if(sw[0] == true)
+            renderGameObjects(currentBuffer);
 
         m_Swapchain.EndRenderPass(currentBuffer);
         VulkanWrapper::endCommandBuffer(currentBuffer);
@@ -181,6 +184,67 @@ namespace Myu
                 
                 ImGui::DockSpace(dockspace_id); // 이게 왜 선행되서 불려야하는걸까??...
                 ImGui::Begin("Hierarchy");
+                
+                if (sw[0] == true)
+                {
+                    if (ImGui::Selectable("[3d Object] Paimon.obj", sw[1]))
+                    {
+                        sw[1] = true;
+                    }
+                }
+
+                bool openpopup = false;
+
+                if (ImGui::BeginPopup("Hierarchy_popup"))
+                {
+                    if (ImGui::MenuItem("Add 3d Object"))
+                    {
+                        openpopup = true;
+                    }
+
+                    ImGui::MenuItem("Add ...");
+                    
+                    ImGui::EndPopup();
+                }
+
+                if (openpopup)
+                {
+                    openpopup = false;
+                    ImGui::OpenPopup("FileDiag");
+                }
+                    
+                if (ImGui::BeginPopupModal("FileDiag", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                {
+                    static char directory[64] = "/models/paimon.obj";
+                    ImGui::InputText("dir", directory, IM_ARRAYSIZE(directory), ImGuiInputTextFlags_None);
+
+                    if (ImGui::Button("OK"))
+                    {
+                        sw[0] = true;
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Cancel"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+
+                ImGuiStyle& style = ImGui::GetStyle();
+
+                float size = ImGui::CalcTextSize("Add Object").x + style.FramePadding.x * 2.0f;
+                float avail = ImGui::GetContentRegionAvail().x;
+
+                float off = (avail - size) * 0.5;
+                if (off > 0.0f)
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+                if (ImGui::Button("Add Object"))
+                {
+                    ImGui::OpenPopup("Hierarchy_popup");
+                }
+
                 ImGui::End();
 
                 ImGui::Begin("Log");
@@ -188,13 +252,30 @@ namespace Myu
                 ImGui::End();
                 
                 ImGui::Begin("Properties");
-                if (ImGui::CollapsingHeader("Outline Component"))
+
+                if (ImGui::BeginPopup("Properties_popup"))
+                {
+                    if (ImGui::MenuItem("Add Outline Component"))
+                    {
+                        sw[2] = true;
+                    }
+
+                    if(ImGui::MenuItem("Add CelShading Component"))
+                    {
+                        sw[3] = true;
+                    }
+
+                    ImGui::MenuItem("Add ...");
+                    ImGui::EndPopup();
+                }
+
+                if (sw[2] == true && ImGui::CollapsingHeader("Outline Component"))
                 {
                     ImGui::SliderFloat("thickness", &outline_thick, 0.0, 0.3);
                     ImGui::ColorEdit3("outline color", outline_color);   
                 }
 
-                if (ImGui::CollapsingHeader("CelShade Component"))
+                if (sw[3] == true && ImGui::CollapsingHeader("CelShade Component"))
                 {
                     ImGui::SliderInt("steps", &celshade_steps, 0.0, 5);
                     ImGui::SliderFloat("step min", &celshade_color[0], 0.0, 5.0);
@@ -203,6 +284,20 @@ namespace Myu
 
                     ImGui::SliderFloat("shadow offset", &celshade_offset, 0.0, 3.0);
                     ImGui::SliderFloat("shadow exponent", &celshade_expo, 0.0, 3.0);
+                }
+
+                style = ImGui::GetStyle();
+
+                size = ImGui::CalcTextSize("Add Component").x + style.FramePadding.x * 2.0f;
+                avail = ImGui::GetContentRegionAvail().x;
+
+                off = (avail - size) * 0.5;
+                if (off > 0.0f)
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+
+                if (sw[1] == true && ImGui::Button("Add Component"))
+                {
+                    ImGui::OpenPopup("Properties_popup");
                 }
 
                 ImGui::End();
@@ -227,7 +322,7 @@ namespace Myu
             VK_CHECK_RESULT(err);
             
             VkClearValue clearValue;
-            clearValue.color ={{0.3f, 0.3f, 0.3f, 1.0f}};
+            clearValue.color ={{0.0f, 0.0f, 0.0f, 1.0f}};
             VkRenderPassBeginInfo info2 = {};
             info2.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             info2.renderPass = gImGUIRenderpass;
@@ -301,6 +396,7 @@ namespace Myu
             // FIMXE: HACK
             go.model->bind(commandBuffer, pipelineLayout, go.transform.toMat4(), camera.getView(), camera.getProjection());
             
+
             go.model->draw(commandBuffer);
 
         }
