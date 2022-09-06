@@ -27,7 +27,8 @@ project "Myu"
         "%{IncludeDirs.ImGUI}",
         "%{IncludeDirs.stb_image}",
         "%{IncludeDirs.tiny_obj_loader}",
-        (OSX_Vulkan_PATH .. "/macOS/include")
+        (OSX_Vulkan_PATH .. "/macOS/include"),
+        "%{IncludeDirs.ImGUI_filebrowser}"
       }
       libdirs
       {
