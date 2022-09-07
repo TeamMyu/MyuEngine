@@ -14,10 +14,14 @@ project "Myu"
 
     defines { "MYU_BUILD_DLL" }
 
-	  postbuildcommands
+    prebuildcommands{
+        "call \"$(SolutionDir)Myu\\src\\shaders\\compile.sh\" $(SolutionDir)"
+    }
+    
+	postbuildcommands
     {
       "{MKDIR} %{wks.location}/bin/Editor/%{cfg.buildcfg}",
-	    "{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/Editor/%{cfg.buildcfg}"
+	  "{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/Editor/%{cfg.buildcfg}"
     }
 
    filter "system:macosx"
