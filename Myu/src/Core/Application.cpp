@@ -216,7 +216,7 @@ namespace Myu
 
                     VulkanWrapper::VulkanPipelineSpecification pipelineSpec{};
                     pipelineSpec.vertFilepath = "shaders/shader.vert.spv";
-                    pipelineSpec.fragFilepath = "shaders/shader.frag.spv";
+                    pipelineSpec.fragFilepath = "shaders/wireframe.frag.spv";
                     pipelineSpec.pipelineLayout = pipelineLayout;
                     pipelineSpec.rasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
                     // viewport info setup
