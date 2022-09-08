@@ -20,6 +20,7 @@ namespace Myu {
 
       const glm::mat4& getProjection() const { return projectionMatrix; }
       const glm::mat4& getView() const { return viewMatrix; }
+      void setView(const glm::mat4& newViewMatrix) { viewMatrix = newViewMatrix; }
 
      private:
       glm::mat4 projectionMatrix{1.f};

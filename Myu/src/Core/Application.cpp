@@ -145,7 +145,7 @@ namespace Myu
         // process keyboard event
         for (auto& go : gameObjects)
         {
-            mouseListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
+            mouseListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, camera);
             keyboardListener.moveInPlaneXZ(m_Window.GetGLFWWindow(), deltaTime, go);
         }
 
@@ -436,9 +436,9 @@ namespace Myu
         VulkanWrapper::createTextureSampler(m_Device.GetVkPhysicalDevice(), m_Device.GetVkLogicalDevice(), textureSampler);
         
         startTime = std::chrono::high_resolution_clock::now();
-        
+
         // camera setup
-        camera.setViewTarget(glm::vec3(0, 0, -2), glm::vec3(0, 0, 0));
+        camera.setViewTarget(glm::vec3(0, 0, -10), glm::vec3(0, 0, 0));
         float aspect = m_Swapchain.GetVkExtent2D().width / (float)m_Swapchain.GetVkExtent2D().height;
         camera.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 100.f);
         

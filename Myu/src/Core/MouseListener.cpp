@@ -1,37 +1,37 @@
-#include "MouseListener.hpp"
+﻿#include "MouseListener.hpp"
+#include <iostream>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 namespace Myu
 {
-    void MouseListener::moveInPlaneXZ(GLFWwindow* window, float dt, GameObject& go) {
+    void MouseListener::moveInPlaneXZ(GLFWwindow* window, float dt, Camera& cm) {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS &&
             (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)) {
 
-            double xCur, yCur;
             glfwGetCursorPos(window, &xCur, &yCur);
 
-            if (xPos == 0 && yPos == 0) {
+            if (xPos < glm::epsilon<double>() && yPos < glm::epsilon<double>()) {
                 xPos = xCur;
                 yPos = yCur;
-                pre_rotation = go.transform.rotation;
+                if (early_view == glm::mat4(0.0f))
+                    early_view = cm.getView();
             }
-
-            double xOfs, yOfs;
+          
             xOfs = (xCur - xPos) * moveSpeed;
             yOfs = (yPos - yCur) * moveSpeed;
+            glm::mat4 Rotation = glm::rotate(early_view, glm::radians(rotation.y + yOfs), { 1, 0, 0 });
+            Rotation = glm::rotate(Rotation, glm::radians(rotation.x + xOfs), { 0, 1, 0 });
+            cm.setView(Rotation);
 
-            glm::vec3 rotate{ 0 };
-            rotate.x = yOfs / 1280 * moveSpeed;
-            rotate.y = xOfs / 800 * moveSpeed;
-
-            if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon())
-                go.transform.rotation = pre_rotation + (moveSpeed * rotate);
-
-            go.transform.rotation.x = pre_rotation.x + glm::clamp(rotate.x, -1.5f, 1.5f); // -85 ~ 85 degree
-            go.transform.rotation.y = pre_rotation.y + glm::mod(rotate.y, glm::two_pi<float>());
-
-        } else {
-            xPos = 0;
-            yPos = 0;
+        } else if (xPos > glm::epsilon<double>() && yPos > glm::epsilon<double>()) {
+                rotation.x += xOfs;
+                rotation.y += yOfs;
+                xPos = 0.f;
+                yPos = 0.f;
         }
     }
 }
