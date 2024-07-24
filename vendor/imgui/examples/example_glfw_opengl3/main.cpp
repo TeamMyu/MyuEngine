@@ -7,72 +7,27 @@
 // - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
 // - Introduction, links and more at the top of imgui.cpp
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
-#include <iostream>
 #define GL_SILENCE_DEPRECATION
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-// Simple helper function to load an image into a OpenGL texture with common settings
-bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
-{
-    // Load from file
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
-        return false;
-
-    // Create a OpenGL texture identifier
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
-
-    // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-
-    // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <GLES2/gl2.h>
 #endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
+#include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-    *out_texture = image_texture;
-    *out_width = image_width;
-    *out_height = image_height;
+// [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
+// To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
+// Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
+#if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
+#pragma comment(lib, "legacy_stdio_definitions")
+#endif
 
-    return true;
-}
-
-void MyCombo(const char* label, const char** items, uint8_t size, int& current_idx)
-{
-    const char* preview = items[current_idx];
-    if (ImGui::BeginCombo(label, preview, 0))
-    {
-        for (int i = 0; i < size; i++)
-        {
-            const bool is_selected = (current_idx == i);
-            if (ImGui::Selectable(items[i], is_selected))
-                current_idx = i;
-
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-
-        ImGui::EndCombo();
-    }
-}
-
+// This example can also compile and run with Emscripten! See 'Makefile.emscripten' for details.
+#ifdef __EMSCRIPTEN__
+#include "../libs/emscripten/emscripten_mainloop_stub.h"
+#endif
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -122,7 +77,10 @@ int main(int, char**)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    //io.ConfigViewportsNoAutoMerge = true;
+    //io.ConfigViewportsNoTaskBarIcon = true;
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -162,24 +120,18 @@ int main(int, char**)
 
     // Our state
     bool show_demo_window = true;
+    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-    char loaded_image_path[100] = "";
-    char inputted_image_path[100] = "../resources/tomori.jpg";
-    GLuint loaded_image_id = 0;
-    int loaded_image_width = 0;
-    int loaded_image_height = 0;
-
     // Main loop
+#ifdef __EMSCRIPTEN__
+    // For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
+    // You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
+    io.IniFilename = nullptr;
+    EMSCRIPTEN_MAINLOOP_BEGIN
+#else
     while (!glfwWindowShouldClose(window))
+#endif
     {
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -197,109 +149,36 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-
-        // AI 이미지 생성 윈도우
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            ImGui::Begin("Image Gen");
+            static float f = 0.0f;
+            static int counter = 0;
 
-            ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-            if (ImGui::BeginTabBar("ImageGenTab", tab_bar_flags))
-            {
-                if (ImGui::BeginTabItem("Image"))
-                {
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-                    ImGui::InputText("image_path", inputted_image_path, 100);
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &show_another_window);
 
-                    ImGui::Separator();
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-                    bool loading_success = true;
-                    if (strcmp(loaded_image_path, inputted_image_path) != 0)
-                    {
-                        strcpy(loaded_image_path, inputted_image_path);
-                        loading_success = LoadTextureFromFile(loaded_image_path, &loaded_image_id, &loaded_image_width, &loaded_image_height);
-                    }
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
 
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
 
-                    ImGui::Text("size = %d x %d", loaded_image_width, loaded_image_height);
-
-                    if (loading_success)
-                        ImGui::Image((void*)(intptr_t)loaded_image_id, ImVec2(loaded_image_width, loaded_image_height));
-
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem("Option"))
-                {
-
-                    // model
-                    const char* models[] = {"None", "Test", "Test", "Test"};
-                    static int current_model_idx = 0;
-                    MyCombo("model", models, IM_ARRAYSIZE(models), current_model_idx);
-
-                    // width
-                    const char* widths[] = {"1920", "960"};
-                    static int current_width_idx = 0;
-                    MyCombo("width", widths, IM_ARRAYSIZE(widths), current_width_idx);
-
-                    // height
-                    const char* heights[] = {"1920", "960"};
-                    static int current_height_idx = 0;
-                    MyCombo("height", heights, IM_ARRAYSIZE(heights), current_height_idx);
-
-                    // sampler
-                    const char* samplers[] = {"?", "?"};
-                    static int current_sampler_idx = 0;
-                    MyCombo("sampler", samplers, IM_ARRAYSIZE(samplers), current_sampler_idx);
-
-                    // 구도
-                    const char* poses[] = {"standing", "sitting"};
-                    static int current_pose_idx = 0;
-                    MyCombo("pose", poses, IM_ARRAYSIZE(poses), current_pose_idx);
-
-                    // 성별
-                    const char* sex[] = {"male", "female"};
-                    static int current_sex_idx = 0;
-                    MyCombo("sex", sex, IM_ARRAYSIZE(sex), current_sex_idx);
-
-                    // 체형
-                    const char* body_types[] = {"fat", "no_fat"};
-                    static int current_body_type_idx = 0;
-                    MyCombo("body_type", body_types, IM_ARRAYSIZE(body_types), current_body_type_idx);
-
-                    // 머리 스타일
-                    const char* hair_styles[] = {"?", "?"};
-                    static int current_hair_style_idx = 0;
-                    MyCombo("hair_style", hair_styles, IM_ARRAYSIZE(hair_styles), current_hair_style_idx);
-
-                    // 머리 색깔
-                    // string input
-                    static char hair_color_buffer[100];
-                    ImGui::InputText("hair_color", hair_color_buffer, 100);
-
-                    // 표정
-                    const char* look[] = {"smile", "sad"};
-                    static int current_look_idx = 0;
-                    MyCombo("look", look, IM_ARRAYSIZE(look), current_look_idx);
-
-                    // 얼굴
-                    const char* face[] = {"smile", "sad"};
-                    static int current_face_idx = 0;
-                    MyCombo("face", face, IM_ARRAYSIZE(face), current_face_idx);
-
-                    // 의상
-                    static char dress_text[512 * 16] = "dress input";
-                    ImGui::InputTextMultiline("dress", dress_text, IM_ARRAYSIZE(dress_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-                    // 기타
-                    static char etc_text[512 * 16] = "etc input";
-                    ImGui::InputTextMultiline("etc", etc_text, IM_ARRAYSIZE(etc_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-                    ImGui::EndTabItem();
-                }
-
-                ImGui::EndTabBar();
-            }
-
+        // 3. Show another simple window.
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
             ImGui::End();
         }
 
