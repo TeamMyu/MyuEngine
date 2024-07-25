@@ -522,3 +522,6 @@ FodyWeavers.xsd
 
 # cmake build folder
 build/
+
+# imgui ini files
+*.ini
