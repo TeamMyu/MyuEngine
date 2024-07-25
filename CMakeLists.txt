@@ -32,9 +32,8 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/vendor/imgui/backends
 )
 
-if (APPLE)
-    target_link_libraries(${PROJECT_NAME}
-        ${PROJECT_SOURCE_DIR}/lib/libglfw.3.dylib
-    )
-endif()
+# link glfw
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
+target_link_libraries(${PROJECT_NAME} glfw)
+
 
