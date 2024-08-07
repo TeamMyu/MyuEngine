@@ -7,8 +7,8 @@
 // - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
 // - Introduction, links and more at the top of imgui.cpp
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -19,60 +19,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-// Simple helper function to load an image into a OpenGL texture with common settings
-bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
-{
-    // Load from file
-    int image_width = 0;
-    int image_height = 0;
-    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
-    if (image_data == NULL)
-        return false;
-
-    // Create a OpenGL texture identifier
-    GLuint image_texture;
-    glGenTextures(1, &image_texture);
-    glBindTexture(GL_TEXTURE_2D, image_texture);
-
-    // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
-
-    // Upload pixels into texture
-#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-#endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
-
-    *out_texture = image_texture;
-    *out_width = image_width;
-    *out_height = image_height;
-
-    return true;
-}
-
-void MyCombo(const char* label, const char** items, uint8_t size, int& current_idx)
-{
-    const char* preview = items[current_idx];
-    if (ImGui::BeginCombo(label, preview, 0))
-    {
-        for (int i = 0; i < size; i++)
-        {
-            const bool is_selected = (current_idx == i);
-            if (ImGui::Selectable(items[i], is_selected))
-                current_idx = i;
-
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-
-        ImGui::EndCombo();
-    }
-}
-
+#include "ImageGeneratorWindow.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -82,6 +29,8 @@ static void glfw_error_callback(int error, const char* description)
 // Main code
 int main(int, char**)
 {
+    ImageGeneratorWindow img_window;
+
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -172,12 +121,6 @@ int main(int, char**)
         return -1;
     }
 
-    char loaded_image_path[100] = "";
-    char inputted_image_path[100] = "../resources/tomori.jpg";
-    GLuint loaded_image_id = 0;
-    int loaded_image_width = 0;
-    int loaded_image_height = 0;
-
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -197,111 +140,8 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-
         // AI 이미지 생성 윈도우
-        {
-            ImGui::Begin("Image Gen");
-
-            ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-            if (ImGui::BeginTabBar("ImageGenTab", tab_bar_flags))
-            {
-                if (ImGui::BeginTabItem("Image"))
-                {
-
-                    ImGui::InputText("image_path", inputted_image_path, 100);
-
-                    ImGui::Separator();
-
-                    bool loading_success = true;
-                    if (strcmp(loaded_image_path, inputted_image_path) != 0)
-                    {
-                        strcpy(loaded_image_path, inputted_image_path);
-                        loading_success = LoadTextureFromFile(loaded_image_path, &loaded_image_id, &loaded_image_width, &loaded_image_height);
-                    }
-
-
-                    ImGui::Text("size = %d x %d", loaded_image_width, loaded_image_height);
-
-                    if (loading_success)
-                        ImGui::Image((void*)(intptr_t)loaded_image_id, ImVec2(loaded_image_width, loaded_image_height));
-
-                    ImGui::EndTabItem();
-                }
-
-                if (ImGui::BeginTabItem("Option"))
-                {
-
-                    // model
-                    const char* models[] = {"None", "Test", "Test", "Test"};
-                    static int current_model_idx = 0;
-                    MyCombo("model", models, IM_ARRAYSIZE(models), current_model_idx);
-
-                    // width
-                    const char* widths[] = {"1920", "960"};
-                    static int current_width_idx = 0;
-                    MyCombo("width", widths, IM_ARRAYSIZE(widths), current_width_idx);
-
-                    // height
-                    const char* heights[] = {"1920", "960"};
-                    static int current_height_idx = 0;
-                    MyCombo("height", heights, IM_ARRAYSIZE(heights), current_height_idx);
-
-                    // sampler
-                    const char* samplers[] = {"?", "?"};
-                    static int current_sampler_idx = 0;
-                    MyCombo("sampler", samplers, IM_ARRAYSIZE(samplers), current_sampler_idx);
-
-                    // 구도
-                    const char* poses[] = {"standing", "sitting"};
-                    static int current_pose_idx = 0;
-                    MyCombo("pose", poses, IM_ARRAYSIZE(poses), current_pose_idx);
-
-                    // 성별
-                    const char* sex[] = {"male", "female"};
-                    static int current_sex_idx = 0;
-                    MyCombo("sex", sex, IM_ARRAYSIZE(sex), current_sex_idx);
-
-                    // 체형
-                    const char* body_types[] = {"fat", "no_fat"};
-                    static int current_body_type_idx = 0;
-                    MyCombo("body_type", body_types, IM_ARRAYSIZE(body_types), current_body_type_idx);
-
-                    // 머리 스타일
-                    const char* hair_styles[] = {"?", "?"};
-                    static int current_hair_style_idx = 0;
-                    MyCombo("hair_style", hair_styles, IM_ARRAYSIZE(hair_styles), current_hair_style_idx);
-
-                    // 머리 색깔
-                    // string input
-                    static char hair_color_buffer[100];
-                    ImGui::InputText("hair_color", hair_color_buffer, 100);
-
-                    // 표정
-                    const char* look[] = {"smile", "sad"};
-                    static int current_look_idx = 0;
-                    MyCombo("look", look, IM_ARRAYSIZE(look), current_look_idx);
-
-                    // 얼굴
-                    const char* face[] = {"smile", "sad"};
-                    static int current_face_idx = 0;
-                    MyCombo("face", face, IM_ARRAYSIZE(face), current_face_idx);
-
-                    // 의상
-                    static char dress_text[512 * 16] = "dress input";
-                    ImGui::InputTextMultiline("dress", dress_text, IM_ARRAYSIZE(dress_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-                    // 기타
-                    static char etc_text[512 * 16] = "etc input";
-                    ImGui::InputTextMultiline("etc", etc_text, IM_ARRAYSIZE(etc_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-                    ImGui::EndTabItem();
-                }
-
-                ImGui::EndTabBar();
-            }
-
-            ImGui::End();
-        }
+        img_window.Draw();
 
         // Rendering
         ImGui::Render();

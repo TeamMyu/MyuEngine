@@ -4,7 +4,7 @@ project(MyuEngine VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} 
     src/main.cpp
 
     # glad
@@ -17,7 +17,13 @@ add_executable(${PROJECT_NAME}
     vendor/imgui/imgui_widgets.cpp
     vendor/imgui/imgui.cpp
     vendor/imgui/backends/imgui_impl_glfw.cpp
-    vendor/imgui/backends/imgui_impl_opengl3.cpp
+    vendor/imgui/backends/imgui_impl_opengl3.cpp 
+    
+    src/APIClient.h 
+    src/APIClient.cpp
+    src/SDAPIs.hpp
+    src/ImageGeneratorWindow.h
+    src/ImageGeneratorWindow.cpp
 )
 
 
@@ -36,4 +42,6 @@ include_directories(
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 target_link_libraries(${PROJECT_NAME} glfw)
 
-
+# link httplib
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/cpp-httplib)
+target_link_libraries(${PROJECT_NAME} httplib::httplib)
