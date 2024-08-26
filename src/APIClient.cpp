@@ -1,7 +1,56 @@
 
 #include "APIClient.h"
+#include <queue>
+#include <future>
 
 string APIClient::domain = "http://127.0.0.1";
+thread eventThread;
+std::queue<std::function<void()>> taskQueue;
+std::mutex queueMutex;
+
+void pushTask(std::function<void()> task) {
+	try {
+		while (!queueMutex.try_lock());
+		taskQueue.push(task);
+		queueMutex.unlock();
+	}
+	catch (const std::system_error& e) {
+		std::cerr << "Failed to lock mutex: " << e.what() << std::endl;
+		return;
+	}
+}
+
+void APIClient::eventLoop() {
+	std::cout << "eventLoop: " << std::this_thread::get_id() << std::endl;
+	while (true)
+	{
+		while (!taskQueue.empty()) {
+			auto task = taskQueue.front();
+			taskQueue.pop();
+			while (!queueMutex.try_lock());
+			std::thread(task).detach();
+			queueMutex.unlock();
+		}
+		Sleep(10);
+	}
+}
+
+void APIClient::PostAsync(const string& url, const string& data, std::function<void(string)> callback) {
+	std::cout << "PostAsync: " << std::this_thread::get_id() << std::endl;
+	pushTask([url, data, callback]() {
+		std::cout << "callback call: " << std::this_thread::get_id() << std::endl;
+		string result = APIClient::Post(url, data);
+		callback(result);
+		std::cout << "callback call end: " << std::this_thread::get_id() << std::endl;
+	});
+}
+
+void APIClient::Init(string domain) { 
+	APIClient::domain = domain; 
+
+	eventThread = thread(&APIClient::eventLoop);
+	eventThread.detach();
+};
 
 bool APIClient::isValid() {
 
@@ -82,27 +131,4 @@ string APIClient::Post(const string& url, Headers headers, Params data)
 		return nullptr;
 
 	return res->body;
-}
-
-string APIClient::UrlEncode(const string& url)
-{
-	const string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
-
-	string escaped = "";
-	for (size_t i = 0; i < url.length(); i++)
-	{
-		if (unreserved.find_first_of(url[i]) != std::string::npos)
-		{
-			escaped.push_back(url[i]);
-		}
-		else
-		{
-			escaped.append("%");
-			char buf[3];
-
-			sprintf_s(buf, "%.2X", (unsigned char)url[i]);
-			escaped.append(buf);
-		}
-	}
-	return escaped;
 }

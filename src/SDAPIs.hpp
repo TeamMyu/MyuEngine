@@ -4,22 +4,26 @@
 
 #include <vector>
 #include <string>
+#include <future>
 
 using namespace nlohmann;
 
-class SDAPIs{
+class SDAPIs {
 public:
     SDAPIs();
     bool setModel(string model);
-	string txt2img(string prompt, string n_prompt, string sampler, int steps, int width, int height, bool upsacle, float cfg, int seed);
-    int getProgress();
+    void txt2img(std::function<void(string)> callback, string prompt, string n_prompt, string sampler, int steps, int width, int height, bool upsacle, float cfg, bool noBackground, string version, int seed);
+    float getProgress();
+    bool Init();
 
     float progress = 0.f;
+    bool isStarted;
     std::vector<std::string> models;
     std::vector<std::string> loras;
     std::vector<std::string> samplers;
 
 private:
+
 };
 
 std::string& removeQuotes(std::string& str) {
@@ -37,7 +41,9 @@ SDAPIs::SDAPIs() :
     loras(std::vector<std::string>()),
     samplers(std::vector<std::string>())
 {
+}
 
+bool SDAPIs::Init() {
     loras.push_back("None");
 
     string result = APIClient::Get("GetSDModels");
@@ -60,16 +66,25 @@ SDAPIs::SDAPIs() :
         result = element.dump();
         loras.push_back(removeExtension(removeQuotes(result)));
     }
+
+    return true;
 }
 
-int SDAPIs::getProgress() {
-    string result = APIClient::Get("GetProgress");
-    auto models_json = json::parse(result);
-    return models_json["progress"].template get<int>();
+float SDAPIs::getProgress() {
+    static int tick = GetTickCount();
+    static float prev = 0.f;
+
+    if (GetTickCount() - tick > 512) {
+        tick = GetTickCount();
+        string result = APIClient::Get("GetProgress");
+        auto models_json = json::parse(result);
+        prev = models_json["progress"].get<float>();
+    }
+
+    return prev;
 }
 
 bool SDAPIs::setModel(string model) {
-    
     json args;
     args["model"] = model;
     json params = { {"args", args} };
@@ -82,8 +97,12 @@ bool SDAPIs::setModel(string model) {
 
     return  true;
 }
-string SDAPIs::txt2img(string prompt, string n_prompt, string sampler, int steps, int width, int height, bool upsacle, float cfg, int seed = -1) {
+
+void SDAPIs::txt2img(std::function<void(string)> callback, string prompt, string n_prompt, string sampler, int steps, int width, int height, bool upsacle, float cfg, bool noBackground, string version, int seed = -1) {
     json args;
+    args["version"] = version;
+    args["background"] = !noBackground;
+
     args["seed"] = seed;
     args["prompt"] = prompt;
     args["negative_prompt"] = n_prompt;
@@ -95,5 +114,6 @@ string SDAPIs::txt2img(string prompt, string n_prompt, string sampler, int steps
     args["height"] = height;
     json params = { {"args", args} };
 
-	return APIClient::Post("CallSD", params.dump());
+    APIClient::PostAsync("CallSD", params.dump(), callback);
+    return;
 }

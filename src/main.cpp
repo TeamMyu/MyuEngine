@@ -19,7 +19,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "APIClient.h"
 #include "ImageGeneratorWindow.h"
+#include "NovelGeneratorWindow.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -29,7 +31,9 @@ static void glfw_error_callback(int error, const char* description)
 // Main code
 int main(int, char**)
 {
+    APIClient::Init("http://127.0.0.1");
     ImageGeneratorWindow img_window;
+    NovelGeneratorWindow novel_window;
 
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -58,12 +62,17 @@ int main(int, char**)
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
+    //GLFWmonitor* MyMonitor = glfwGetPrimaryMonitor(); // The primary monitor.. Later Occulus?..
+    //const GLFWvidmode* mode = glfwGetVideoMode(MyMonitor);
+
     // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
+
+    glfwMaximizeWindow(window);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -109,6 +118,8 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
 
+    io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+
     // Our state
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -142,6 +153,7 @@ int main(int, char**)
 
         // AI 이미지 생성 윈도우
         img_window.Draw();
+        //novel_window.Draw();
 
         // Rendering
         ImGui::Render();

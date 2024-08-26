@@ -18,12 +18,17 @@ add_executable(${PROJECT_NAME}
     vendor/imgui/imgui.cpp
     vendor/imgui/backends/imgui_impl_glfw.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp 
-    
+    vendor/ImGuiFileDialog/ImGuiFileDialog.cpp
+
     src/APIClient.h 
     src/APIClient.cpp
     src/SDAPIs.hpp
+    src/LLMAPIs.hpp
     src/ImageGeneratorWindow.h
     src/ImageGeneratorWindow.cpp
+    src/NovelGeneratorWindow.h
+    src/NovelGeneratorWindow.cpp
+
 )
 
 
