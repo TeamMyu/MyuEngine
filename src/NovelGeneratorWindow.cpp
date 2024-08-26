@@ -90,20 +90,20 @@ void NovelGeneratorWindow::Draw() {
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if (ImGui::BeginTabBar("NovelGenTab", tab_bar_flags))
     {
-        if (ImGui::BeginTabItem(u8"¼Ò¼³"))
+        if (ImGui::BeginTabItem(u8"ì†Œì„¤"))
         {
             static char novel[512 * 16] = "";
 
-            ImGui::Text(u8"Àå¸£");
+            ImGui::Text(u8"ìž¥ë¥´");
             static char genre[512 * 1] = "";
             ImGui::InputTextMultiline("genre", genre, IM_ARRAYSIZE(genre), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 2), 0);
 
             ImGui::BeginGroup();
-            if (ImGui::Button(u8"¿¡ÇÇ¼Òµå Ãß°¡")) {
-                episodes.push_back({ (int)episodes.size(), u8"¿¡ÇÇ¼Òµå"});
+            if (ImGui::Button(u8"ì—í”¼ì†Œë“œ ì¶”ê°€")) {
+                episodes.push_back({ (int)episodes.size(), u8"ì—í”¼ì†Œë“œ"});
             }
 
-            if (ImGui::TreeNode(u8"¿¡ÇÇ¼Òµå"))
+            if (ImGui::TreeNode(u8"ì—í”¼ì†Œë“œ"))
             {
                 for each (auto epi in episodes)
                 {
@@ -115,8 +115,8 @@ void NovelGeneratorWindow::Draw() {
                     {
                         ImGui::Text("blah blah");
                         ImGui::SameLine();
-                        if (ImGui::SmallButton(u8"ÇÃ·Ô Ãß°¡")) {
-                            strcpy_s(novel, u8"Å×½ºÆ® 2");
+                        if (ImGui::SmallButton(u8"í”Œë¡¯ ì¶”ê°€")) {
+                            strcpy_s(novel, u8"í…ŒìŠ¤íŠ¸ 2");
                         }
                         ImGui::TreePop();
                     }
@@ -137,7 +137,7 @@ void NovelGeneratorWindow::Draw() {
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem(u8"µ¥ÀÌÅÍº£ÀÌ½º"))
+        if (ImGui::BeginTabItem(u8"ë°ì´í„°ë² ì´ìŠ¤"))
         {
             static int selectIndex = -1;
             static int prevIndex = -1;
@@ -181,14 +181,14 @@ void NovelGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"ÀÚµ¿ »ý¼º")) {
+            if (ImGui::Button(u8"ìžë™ ìƒì„±")) {
                 //llm_api->addRAG(rag_subject, rag_content);    
                 strcpy_s(rag_content, llm_api->genText(rag_content).c_str());
             }
 
             ImGui::InputTextMultiline("content", rag_content, IM_ARRAYSIZE(rag_content), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 32), 0);
 
-            if (ImGui::Button(u8"Ãß°¡")) {
+            if (ImGui::Button(u8"ì¶”ê°€")) {
                 llm_api->addRAG(rag_subject, rag_content);
                 memset(rag_subject, 0, sizeof(rag_subject));
                 memset(rag_content, 0, sizeof(rag_content));
@@ -198,7 +198,7 @@ void NovelGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"¼öÁ¤")) {
+            if (ImGui::Button(u8"ìˆ˜ì •")) {
                 std::cout << selectIndex << std::endl;
                 llm_api->updateRAG(selectIndex, rag_subject, rag_content);
                 memset(rag_subject, 0, sizeof(rag_subject));
@@ -209,7 +209,7 @@ void NovelGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"»èÁ¦")) {
+            if (ImGui::Button(u8"ì‚­ì œ")) {
                 llm_api->deleteRAG(selectIndex);
                 memset(rag_subject, 0, sizeof(rag_subject));
                 memset(rag_content, 0, sizeof(rag_content));
@@ -219,13 +219,13 @@ void NovelGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"µ¿±âÈ­")) {
+            if (ImGui::Button(u8"ë™ê¸°í™”")) {
                 llm_api->syncRAG();
             }
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"ÃÊ±âÈ­")) {
+            if (ImGui::Button(u8"ì´ˆê¸°í™”")) {
                 llm_api->resetRAG();
             }
 
