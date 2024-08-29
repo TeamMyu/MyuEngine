@@ -60,11 +60,11 @@ NovelGeneratorWindow::NovelGeneratorWindow() {
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+    io.Fonts->AddFontFromFileTTF("../resources/fonts/malgun.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 }
 
 std::string NovelGeneratorWindow::GenNovel(std::string params) {
-    
+
     return llm_api->genText(params);
 }
 
@@ -100,12 +100,12 @@ void NovelGeneratorWindow::Draw() {
 
             ImGui::BeginGroup();
             if (ImGui::Button(u8"에피소드 추가")) {
-                episodes.push_back({ (int)episodes.size(), u8"에피소드"});
+                // episodes.push_back({ (int)episodes.size(), u8"에피소드"});
             }
 
             if (ImGui::TreeNode(u8"에피소드"))
             {
-                for each (auto epi in episodes)
+                for (auto epi : episodes)
                 {
                     if (epi.id == 0)
                         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
@@ -116,7 +116,7 @@ void NovelGeneratorWindow::Draw() {
                         ImGui::Text("blah blah");
                         ImGui::SameLine();
                         if (ImGui::SmallButton(u8"플롯 추가")) {
-                            strcpy_s(novel, u8"테스트 2");
+                            // strcpy_s(novel, u8"테스트 2");
                         }
                         ImGui::TreePop();
                     }
@@ -130,7 +130,7 @@ void NovelGeneratorWindow::Draw() {
             ImGui::SameLine();
 
             ImGui::BeginGroup();
-            
+
             ImGui::InputTextMultiline("novel", novel, IM_ARRAYSIZE(novel), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
             ImGui::EndGroup();
 
@@ -146,7 +146,7 @@ void NovelGeneratorWindow::Draw() {
             static char rag_content[512 * 16] = "";
 
             if (ImGui::BeginListBox("##draw_list", ImVec2(200, 640))) {
-        
+
                 std::vector<const char*> items;
                 int idx = 0;
                 items.clear();
@@ -163,8 +163,8 @@ void NovelGeneratorWindow::Draw() {
                     if (is_selected && isIndexChanged) {
                         std::cout << "selected: " << selectIndex << std::endl;
                         if (prevIndex > -1) {
-                            strcpy_s(rag_subject, sizeof(rag_subject), llm_api->rag[selectIndex].first.c_str());
-                            strcpy_s(rag_content, sizeof(rag_content), llm_api->rag[selectIndex].second.c_str());
+                            // strcpy(rag_subject, sizeof(rag_subject), llm_api->rag[selectIndex].first.c_str());
+                            // strcpy(rag_content, sizeof(rag_content), llm_api->rag[selectIndex].second.c_str());
                         }
 
                         ImGui::SetItemDefaultFocus();
@@ -182,8 +182,9 @@ void NovelGeneratorWindow::Draw() {
             ImGui::SameLine();
 
             if (ImGui::Button(u8"자동 생성")) {
-                //llm_api->addRAG(rag_subject, rag_content);    
-                strcpy_s(rag_content, llm_api->genText(rag_content).c_str());
+                //llm_api->addRAG(rag_subject, rag_content);
+                // strcpy_s(rag_content, llm_api->genText(rag_content).c_str());
+                strcpy(rag_content, llm_api->genText(rag_content).c_str());
             }
 
             ImGui::InputTextMultiline("content", rag_content, IM_ARRAYSIZE(rag_content), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 32), 0);

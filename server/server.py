@@ -25,7 +25,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 # for m in genai.list_models():
 #     if 'generateContent' in m.supported_generation_methods:
 #         result.append(m.name)
-    
+
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 import webuiapi
@@ -35,16 +35,16 @@ api = webuiapi.WebUIApi()
 
 def getModelList():
     return api.util_get_model_names()
-        
+
 def setModel(args):
     api.util_set_model(args['model'])
 
-# layerdiffusion_enabled 
-# layerdiffusion_method 
-# layerdiffusion_weight 
+# layerdiffusion_enabled
+# layerdiffusion_method
+# layerdiffusion_weight
 # layerdiffusion_ending_step
-# layerdiffusion_fg_image 
-# layerdiffusion_bg_image 
+# layerdiffusion_fg_image
+# layerdiffusion_bg_image
 # layerdiffusion_blend_image
 # layerdiffusion_resize_mode
 # layerdiffusion_fg_additional_prompt
@@ -55,7 +55,7 @@ def sdCall(args):
     print(args)
     scr = {}
     if args['background'] == False and args['version'] == '1.5':
-        scr = { 
+        scr = {
                         "LayerDiffuse": {
                             "args": [
                                 True,
@@ -73,7 +73,7 @@ def sdCall(args):
                         }
                     }
     elif args['background'] == False and args['version'] == 'XL':
-        scr = { 
+        scr = {
                 "LayerDiffuse": {
                     "args": [
                         True,
@@ -90,8 +90,8 @@ def sdCall(args):
                     ]
                 }
             }
-        
-    result1 = api.txt2img(prompt=args['prompt'], 
+
+    result1 = api.txt2img(prompt=args['prompt'],
                     negative_prompt=args['negative_prompt'],
                     seed=args['seed'],
                     cfg_scale=args['cfg'],
@@ -121,9 +121,9 @@ def apiRAG(body):
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(data)
-    
+
     docsearch = Chroma.from_documents(texts, hf)
-    
+
     retriever = docsearch.as_retriever(
                                     search_type="mmr",
                                     search_kwargs={'k':3, 'fetch_k': 10})
@@ -160,7 +160,7 @@ def CurProgress():
 
 @app.route('/GetLoRAs', methods=['GET'])
 def LoRAList():
-    return os.listdir(api.get_cmd_flags()['data_dir'] + "\\models\\Lora")
+    return os.listdir(api.get_cmd_flags()['data_dir'] + "/models/Lora")
 
 @app.route('/SetSDModel', methods=['POST'])
 def SetSDModel():
@@ -187,15 +187,15 @@ def CallRAG():
 @app.route('/AddRAG', methods=['POST'])
 def AddRAG():
     file_list = os.listdir("./ragdb")
-    
+
     result = {}
-         
+
     if len(request.get_data().decode('utf-8')) > 4:
         for file in file_list:
             os.remove("ragdb/" + file)
-            
+
         args = json.loads(request.get_data().decode('utf-8'))
-        
+
         for e in args:
             f = open("ragdb/" + e + ".txt", 'w', encoding="utf8")
             f.write(args[e])
@@ -205,7 +205,7 @@ def AddRAG():
             f = open("ragdb/" + file, 'r', encoding="utf8")
             result[os.path.splitext(file)[0]] = f.read()
             f.close()
-        
+
     return result
 
 @app.route('/DeleteRAG/<name>', methods=['GET'])

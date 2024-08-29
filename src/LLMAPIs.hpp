@@ -21,7 +21,7 @@ public:
     bool Init();
 
     std::vector<std::pair<string, string>> rag;
-private: 
+private:
 };
 
 LLMAPIs::LLMAPIs()
@@ -66,11 +66,11 @@ void LLMAPIs::syncRAG() {
     }
     else {
         json args;
-        for each (auto ele in rag)
+        for (auto ele : rag)
         {
             args[ele.first] = ele.second;
         }
-        
+
         string result = APIClient::Post("AddRAG", args.dump());
         auto rags_json = json::parse(result);
         for (auto& el : rags_json.items()) {

@@ -520,8 +520,14 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,visualstudio,visualstudiocode,cmake,macos,windows
 
+# imgui ini files
+*.ini
+
+
+### Myu Engine ###
+
 # cmake build folder
 build/
 
-# imgui ini files
-*.ini
+# SD 종속성 패키지
+stable-diffusion-webui-forge/

@@ -31,7 +31,12 @@ void APIClient::eventLoop() {
 			std::thread(task).detach();
 			queueMutex.unlock();
 		}
-		Sleep(10);
+
+		#if defined(__APPLE__)
+			sleep(10);
+		#else
+			Sleep(10);
+		#endif
 	}
 }
 
@@ -45,8 +50,8 @@ void APIClient::PostAsync(const string& url, const string& data, std::function<v
 	});
 }
 
-void APIClient::Init(string domain) { 
-	APIClient::domain = domain; 
+void APIClient::Init(string domain) {
+	APIClient::domain = domain;
 
 	eventThread = thread(&APIClient::eventLoop);
 	eventThread.detach();
