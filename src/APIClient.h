@@ -14,10 +14,13 @@ public:
 	static bool isValid();
 	static string Get(const string& url);
 	static string Get(const string& url, Headers headers);
+
 	static string Post(const string& url, const string& data);
-	static void PostAsync(const string& url, const string& data, std::function<void(string)> callback);
 	static string Post(const string& url, Headers headers, Params data);
-	static string UrlEncode(const string& text);
+	static string Post(const string& url, const httplib::MultipartFormDataItems& params);
+	static void PostAsync(const string& url, const string& data, std::function<void(string)> callback);
+	static void PostAsync(const string& url, const httplib::MultipartFormDataItems& params, std::function<void(string)> callback);
+	static void test(string client_id, string prompt_id, std::function<void(string)> callback);
 
 	static string domain; 
 

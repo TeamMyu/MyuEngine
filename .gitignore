@@ -525,3 +525,5 @@ build/
 
 # imgui ini files
 *.ini
+vendor/ImGuiFileDialog
+vendor/ImGuiFileDialog

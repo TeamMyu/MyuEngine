@@ -19,16 +19,13 @@ add_executable(${PROJECT_NAME}
     vendor/imgui/backends/imgui_impl_glfw.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp 
     vendor/ImGuiFileDialog/ImGuiFileDialog.cpp
-
-    src/APIClient.h 
-    src/APIClient.cpp
-    src/SDAPIs.hpp
-    src/LLMAPIs.hpp
+    
+    vendor/easywsclient/easywsclient.cpp
+    vendor/easywsclient/easywsclient.hpp
+    src/SDAPIs.h
+    src/SDAPIs.cpp
     src/ImageGeneratorWindow.h
     src/ImageGeneratorWindow.cpp
-    src/NovelGeneratorWindow.h
-    src/NovelGeneratorWindow.cpp
-
 )
 
 
@@ -41,9 +38,10 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/vendor/imgui
     ${PROJECT_SOURCE_DIR}/vendor/imgui/backends
+    ${PROJECT_SOURCE_DIR}/vendor/easywsclient
 )
 
-# link glfw
+# link glfw 
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 target_link_libraries(${PROJECT_NAME} glfw)
 

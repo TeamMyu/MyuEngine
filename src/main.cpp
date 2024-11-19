@@ -19,9 +19,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "APIClient.h"
 #include "ImageGeneratorWindow.h"
-#include "NovelGeneratorWindow.h"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -31,9 +29,8 @@ static void glfw_error_callback(int error, const char* description)
 // Main code
 int main(int, char**)
 {
-    APIClient::Init("http://127.0.0.1");
+    //PIClient::Init("http://127.0.0.1:8188");
     ImageGeneratorWindow img_window;
-    NovelGeneratorWindow novel_window;
 
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -118,6 +115,7 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
 
+    // fix me!
     io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 
     // Our state
@@ -153,7 +151,6 @@ int main(int, char**)
 
         // AI 이미지 생성 윈도우
         img_window.Draw();
-        //novel_window.Draw();
 
         // Rendering
         ImGui::Render();
