@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8...3.13)
 project(MyuEngine VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -18,6 +18,18 @@ add_executable(${PROJECT_NAME}
     vendor/imgui/imgui.cpp
     vendor/imgui/backends/imgui_impl_glfw.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp
+
+    # openGL base classes
+    src/GL/Texture2D.cpp
+    src/GL/Shader.cpp
+    src/GL/Sprite.cpp
+    src/GL/Camera2D.cpp
+    src/GL/VertexArrayObject.cpp
+    src/GL/VertexBufferObject.cpp
+    src/GL/IndexBufferObject.cpp
+    src/GL/UIImage.cpp
+    src/GL/UIElement.cpp
+    src/GL/UIText.cpp
 )
 
 
@@ -32,8 +44,11 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/vendor/imgui/backends
 )
 
-# link glfw
+# glfw 링크
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
-target_link_libraries(${PROJECT_NAME} glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+find_package(Freetype REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype)
 
 
