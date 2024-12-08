@@ -109,7 +109,15 @@ int main(int, char**)
     //IM_ASSERT(font != nullptr);
 
     fs::path fontsPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "fonts";
-    io.Fonts->AddFontFromFileTTF((fontsPath / "malgun.ttf").string().c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+    std::string fontPath = (fontsPath / "malgun.ttf").string();
+
+    // UTF-8 경로를 사용하기 위한 변환
+    #ifdef _WIN32
+        std::wstring wFontPath = std::filesystem::path(fontPath).wstring();
+        io.Fonts->AddFontFromFileTTF(std::filesystem::path(wFontPath).string().c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+    #else
+        io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+    #endif
 
     // Our state
     bool show_demo_window = true;
