@@ -1,4 +1,4 @@
-
+﻿
 #include "ImageGeneratorWindow.h"
 
 //#define STB_IMAGE_IMPLEMENTATION
