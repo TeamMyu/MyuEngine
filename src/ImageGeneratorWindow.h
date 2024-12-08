@@ -21,20 +21,22 @@ public:
     unsigned int handle = 0;
     int width = 0;
     int height = 0;
+    string path;
+
     FITSTYLE fitFrame = FITSTYLE::WIDTH_OR_HEIGHT;
 
     bool FromFile(const char* filename);
     bool FromMemory(std::string file);
     void ToFile(const char* filename);
-    std::string Data();
     void Draw(float x, float y, float pad);
+
+    string Data();
 };
 
 class ImageGeneratorWindow {
 public:
     ImageGeneratorWindow();
 
-    void GenCharacter();
     void Draw();
 
 private:

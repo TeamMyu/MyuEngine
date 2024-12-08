@@ -214,7 +214,7 @@ void ImageDialog(ImageComponent& image_component, int id, const char* title, flo
 
         IGFD::FileDialogConfig config;
         config.path = ".";
-        ImGuiFileDialog::Instance()->OpenDialog(title, "choose file", ".png,.jpg,.bmp,.jpeg", config);
+        ImGuiFileDialog::Instance()->OpenDialog(title, "choose file", ".png,.jpg,.bmp,.jpeg,.webp", config);
     }
     ImGui::PopID();
 
@@ -233,6 +233,7 @@ void ImageDialog(ImageComponent& image_component, int id, const char* title, flo
             std::string filepath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             image_component.FromFile(filepathname.c_str());
+            image_component.path = filepathname;
         }
         ImGuiFileDialog::Instance()->Close();
     }
@@ -244,58 +245,67 @@ ImageGeneratorWindow::ImageGeneratorWindow() {
     
 }
 
-void ImageGeneratorWindow::GenCharacter() {
-    
-    //cout << sd_api->setModel(params.model) << endl;
-    //
-    //stringstream ss;
-    //std::function<void(std::string)> callback = [this](std::string file) {
-    //    while (!queueMutex.try_lock());
-    //    genQueue.push(file);
-    //    queueMutex.unlock();
-    //};
-
-    stableDiffusion.makeCharacter({ "workflow.json","","" });
-
-    //unordered_map<string, string> id2class;
-    //string k_sampler;
-
-    //std::ifstream workflow("workflow.json");
-    //json prompt;
-    //workflow >> prompt;
-
-    //for (auto& el : prompt.items()) {
-    //    std::cout << el.key() << " : " << el.value()["class_type"] << std::endl;
-    //    id2class.insert({ el.value()["class_type"],  el.key() });
-
-    //}
-
-    //auto inputs = prompt[id2class["KSampler"]]["inputs"];
-    //auto seed = inputs["seed"];
-    //auto posText = inputs["positive"];
-    //std::cout << seed << std::endl;
-    //std::cout << posText << std::endl;
-    ////k_sampler = j3[id2class["KSampler"]];
-
-    //UUID uuid;
-    //UuidCreate(&uuid);
-
-    //char* client_id = nullptr;
-    //UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
-
-    //json params;
-    //params["prompt"] = prompt;
-    //params["client_id"] = client_id;
-
-    //json result;
-    //result = json::parse(APIClient::Post("prompt", params.dump()));
-    //string prompt_id = result["prompt_id"];
-    //std::cout << prompt_id << std::endl;
-
-    //APIClient::test(client_id, prompt_id, callback);
-
-    return;
-}
+//void ImageGeneratorWindow::GenCharacter(PoseT2iParams params) {
+//
+//    cout << sd_api->setModel(params.model) << endl;
+//    
+//    stringstream ss;
+//    std::function<void(std::string)> callback = [this](std::string file) {
+//        while (!queueMutex.try_lock());
+//        genQueue.push(file);
+//        queueMutex.unlock();
+//    };
+//
+//    PoseT2iParams params;
+//    params.workflowPath = "PoseT2i.json";
+//    params.positivePrompt = "1 girl, no background";
+//    params.negativePrompt = "";
+//    params.width = "832";
+//    params.height = "1216";
+//    params.posePath = "pose1.png";
+//    stableDiffusion.callSD(params);
+//
+//   
+//
+//    unordered_map<string, string> id2class;
+//    string k_sampler;
+//
+//    std::ifstream workflow("workflow.json");
+//    json prompt;
+//    workflow >> prompt;
+//
+//    for (auto& el : prompt.items()) {
+//        std::cout << el.key() << " : " << el.value()["class_type"] << std::endl;
+//        id2class.insert({ el.value()["class_type"],  el.key() });
+//
+//    }
+//
+//    auto inputs = prompt[id2class["KSampler"]]["inputs"];
+//    auto seed = inputs["seed"];
+//    auto posText = inputs["positive"];
+//    std::cout << seed << std::endl;
+//    std::cout << posText << std::endl;
+//    //k_sampler = j3[id2class["KSampler"]];
+//
+//    UUID uuid;
+//    UuidCreate(&uuid);
+//
+//    char* client_id = nullptr;
+//    UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+//
+//    json params;
+//    params["prompt"] = prompt;
+//    params["client_id"] = client_id;
+//
+//    json result;
+//    result = json::parse(APIClient::Post("prompt", params.dump()));
+//    string prompt_id = result["prompt_id"];
+//    std::cout << prompt_id << std::endl;
+//
+//    APIClient::test(client_id, prompt_id, callback);
+//
+//    return;
+//}
 
 void ImageGeneratorWindow::Draw() {
     ImGui::Begin("Image Gen");
@@ -306,48 +316,46 @@ void ImageGeneratorWindow::Draw() {
     {
         static bool onGenerate = false;
 
-        if (ImGui::BeginTabItem("Simple"))
+        while (!queueMutex.try_lock());
+        if (!genQueue.empty()) {
+            std::cout << "get queue file" << std::endl;
+            auto file = genQueue.front();
+            genQueue.pop();
+
+            std::cout << "gen image" << std::endl;
+            result_image.FromMemory(file);
+
+            onGenerate = false;
+        }
+        queueMutex.unlock();
+
+        if (ImGui::BeginTabItem(u8"캐릭터 생성"))
         {
-            while (!queueMutex.try_lock());
-            if (!genQueue.empty()) {
-                std::cout << "get queue file" << std::endl;
-                auto file = genQueue.front();
-                genQueue.pop();
+            ImGui::Text(u8"긍정 프롬프트");
+            static char posPrompt[512 * 6] = "";
+            ImGui::InputTextMultiline("posPrompt", posPrompt, IM_ARRAYSIZE(posPrompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 6), 0);
 
-                std::cout << "gen image" << std::endl;
-                result_image.FromMemory(file);
-
-                onGenerate = false;
-            } 
-            queueMutex.unlock();
-
-            //static ImVec2 size(512.f, 512.f);
-            //static ImVec2 offset(0.0f, 0.0f);
-
-            //ImGui::TextWrapped("(Click and drag to scroll)");
-
-            //ImGui::PushID(0);
-            //ImGui::InvisibleButton("##canvas", size);
-            //if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-            //{
-            //    offset.x += ImGui::GetIO().MouseDelta.x;
-            //    offset.y += ImGui::GetIO().MouseDelta.y;
-            //}
-            //ImGui::PopID();
-
-            //const ImVec2 p0 = ImGui::GetItemRectMin();
-            //const ImVec2 p1 = ImGui::GetItemRectMax();
-            //const char* text_str = "Line 1 hello\nLine 2 clip me!";
-            //const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
-            //ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-            //ImGui::PushClipRect(p0, p1, true);
-            //draw_list->AddRectFilled(p0, p1, IM_COL32(45, 45, 45, 255));
-            ////draw_list->AddText(text_pos, IM_COL32_WHITE, text_str);
-
-            //ImGui::Image((void*)(intptr_t)this->image, ImVec2(128.f, 128.f));
-            //ImGui::PopClipRect();
+            ImGui::Text(u8"부정 프롬프트");
+            static char negPrompt[512 * 6] = "";
+            ImGui::InputTextMultiline("negPrompt", negPrompt, IM_ARRAYSIZE(negPrompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 6), 0);
             
+            static int denoise = 0;
+            ImGui::SetNextItemWidth(150);
+            ImGui::DragInt(u8"원본 유지 강도", &denoise, 1.f, 0, 100, "%d %%");
+            ImGui::SameLine(275);
+            
+            static vector<string> widths = { "512","768","832","896","1024" ,"1152" ,"1216" ,"1344" ,"1536" };
+            static int widths_idx = 0;
+            ImGui::SetNextItemWidth(150);
+            MyCombo("width", widths, widths_idx);
+
+            ImGui::SameLine(500);
+
+            static vector<string> heights = { "512","768","832","896","1024" ,"1152" ,"1216" ,"1344" ,"1536" };
+            static int heights_idx = 0;
+            ImGui::SetNextItemWidth(150);
+            MyCombo("height", heights, heights_idx);
+
             ImGui::BeginGroup();
             ImGui::Text("[result] %d x %d", result_image.width, result_image.height);
             ImGui::SameLine();
@@ -374,7 +382,7 @@ void ImageGeneratorWindow::Draw() {
                     std::string filepathname = ImGuiFileDialog::Instance()->GetFilePathName();
                     std::string filepath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-                    std::cout << filepathname << std::endl;
+                    std::cout << filepath << std::endl;
                     result_image.ToFile(filepathname.c_str());
                 }
 
@@ -390,129 +398,143 @@ void ImageGeneratorWindow::Draw() {
             ImGui::EndChildFrame();
             ImGui::PopStyleColor();
 
-            ImGui::SameLine();
             ImGui::EndGroup();
 
             ImGui::SameLine();
   
-            ImageDialog(base_image, 98, "base image", 512.f, 512.f);
+            ImageDialog(base_image, 98, u8"베이스 이미지", 512.f, 512.f);
             
+            ImGui::SameLine();
+
             reference_images.emplace_back();
-            ImageDialog(reference_images[0], 99, "face reference", 256.f, 256.f);
+            ImageDialog(reference_images[0], 99, u8"참고할 포즈", 256.f, 256.f);
 
             ImGui::SameLine();
 
             reference_images.emplace_back();
-            ImageDialog(reference_images[1], 100, "clothes reference", 256.f, 256.f);
+            ImageDialog(reference_images[1], 100, u8"참고할 얼굴", 256.f, 256.f);
 
-            ImGui::EndTabItem();
-        }
+            ImGui::SameLine();
+   
+            reference_images.emplace_back();
+            ImageDialog(reference_images[2], 101, u8"참고할 이미지", 256.f, 256.f);
 
-        if (ImGui::BeginTabItem("Advanced")) 
-        {
-            /*MyCombo("version", current_model_version, IM_ARRAYSIZE(current_model_version), current_version_idx);
-            MyCombo("model", sd_api->models, current_model_idx);
-            MyCombo("sampler", sd_api->samplers, current_sampler_idx);
-            MyCombo("lora", sd_api->loras, current_lora_idx);
-            MyCombo("width", widths, IM_ARRAYSIZE(widths), current_width_idx);
-            MyCombo("height", heights, IM_ARRAYSIZE(heights), current_height_idx);
-            ImGui::Checkbox("upsample", &upsample);
-            ImGui::Checkbox("no background", &no_background);
-            ImGui::InputText("random seed", input_seed, IM_ARRAYSIZE(input_seed));
-            ImGui::InputText("sampling step", input_steps, IM_ARRAYSIZE(input_steps));
-            ImGui::InputText("cfg scale", input_cfg, IM_ARRAYSIZE(input_cfg));
-            ImGui::InputTextMultiline("positive prompt", input_prompt, IM_ARRAYSIZE(input_prompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-            ImGui::InputTextMultiline("negative prompt", input_nprompt, IM_ARRAYSIZE(input_nprompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);*/
+            if (ImGui::Button(u8"캐릭터 생성(포즈)")) {
+                PoseT2iParams params;
+                params.workflowPath = "workflows\\PoseT2i.json";
+                params.positivePrompt = string(posPrompt);
+                params.negativePrompt = string(negPrompt);
+                params.width = stoi(widths[widths_idx]);
+                params.height = stoi(heights[heights_idx]);
+              
+                params.posePath = reference_images[0].path;
 
-            //static char etc_text[512 * 16] = "etc input";
-            //ImGui::InputTextMultiline("etc", etc_text, IM_ARRAYSIZE(etc_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-            //// 구도
-            //const char* poses[] = { "standing", "sitting" };
-            //static int current_pose_idx = 0;
-            //MyCombo("pose", poses, IM_ARRAYSIZE(poses), current_pose_idx);
-
-            //// 성별
-            //const char* sex[] = { "male", "female" };
-            //static int current_sex_idx = 0;
-            //MyCombo("sex", sex, IM_ARRAYSIZE(sex), current_sex_idx);
-
-            //// 체형
-            //const char* body_types[] = { "fat", "no_fat" };
-            //static int current_body_type_idx = 0;
-            //MyCombo("body_type", body_types, IM_ARRAYSIZE(body_types), current_body_type_idx);
-
-            //// 머리 스타일
-            //const char* hair_styles[] = { "?", "?" };
-            //static int current_hair_style_idx = 0;
-            //MyCombo("hair_style", hair_styles, IM_ARRAYSIZE(hair_styles), current_hair_style_idx);
-
-            //// 머리 색깔
-            //// string input
-            //static char hair_color_buffer[100];
-            //ImGui::InputText("hair_color", hair_color_buffer, 100); 
-
-            //// 표정
-            //const char* look[] = { "smile", "sad" };
-            //static int current_look_idx = 0;
-            //MyCombo("look", look, IM_ARRAYSIZE(look), current_look_idx);
-
-            //// 얼굴
-            //const char* face[] = { "smile", "sad" };
-            //static int current_face_idx = 0;
-            //MyCombo("face", face, IM_ARRAYSIZE(face), current_face_idx);
-
-            //// 의상
-            //static char dress_text[512 * 16] = "dress input";
-            //ImGui::InputTextMultiline("dress", dress_text, IM_ARRAYSIZE(dress_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-            //// 기타
-            //static char etc_text[512 * 16] = "etc input";
-            //ImGui::InputTextMultiline("etc", etc_text, IM_ARRAYSIZE(etc_text), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 0);
-
-            if (ImGui::Button("Gen")) {
-            /*    thread t3(&ImageGeneratorWindow::GenCharacter, this, ImageGenParams{ sd_api->models[current_model_idx], sd_api->loras[current_lora_idx],
-                    string(input_prompt), string(input_nprompt), sd_api->samplers[current_sampler_idx],
-                     stoi(input_steps), stoi(widths[current_width_idx]), stoi(heights[current_height_idx]),
-                    true, stof(input_cfg), stoi(input_seed)});
-
-                t3.detach();*/
-                
-                onGenerate = true;
-                this->GenCharacter();
-                /*this->GenCharacter({ sd_api->models[current_model_idx], sd_api->loras[current_lora_idx],
-                    string(input_prompt), string(input_nprompt), sd_api->samplers[current_sampler_idx],
-                    "", 0.4f,
-                     stoi(input_steps), stoi(widths[current_width_idx]), stoi(heights[current_height_idx]),
-                    upsample, stof(input_cfg), stoi(input_seed), no_background, string(current_model_version[current_version_idx]) });*/
-
-        /*        SDAPIs::ImageGenParams params;
-                params.version = string(current_model_version[current_version_idx]);
-                params.model = sd_api->models[current_model_idx];
-                params.lora = sd_api->loras[current_lora_idx];
-                params.prompt = string(input_prompt);
-                params.n_prompt = string(input_nprompt);
-                params.width = stoi(widths[current_width_idx]);
-                params.height = stoi(heights[current_height_idx]);           
-                params.sampler = sd_api->samplers[current_sampler_idx];
-                params.seed = stoi(input_seed);
-                params.steps = stoi(input_steps);
-                params.cfg = stof(input_cfg);
-                params.noBackground = no_background;
-                params.upsacle = upsample;
-
-                params.image = base_image.Data();
-                params.denoise = .4f;
-
-                this->GenCharacter(params);*/
+                stableDiffusion.callSD(params);
             }
-            
+
+            ImGui::SameLine();
+
+            if (ImGui::Button(u8"손 수정")) {
+                HandsRedrawParams params;
+                params.region.prompt.workflowPath = "workflows\\HandsRedraw.json";
+                params.region.prompt.positivePrompt = string(posPrompt);
+                params.region.prompt.negativePrompt = string(negPrompt);
+                params.region.prompt.width = stoi(widths[widths_idx]);
+                params.region.prompt.height = stoi(heights[heights_idx]);
+                params.region.prompt.posePath = reference_images[0].path;
+
+                params.region.imagePath = base_image.path;
+                params.region.redrawRegion = string("hands");
+                params.region.strength = (100.f - denoise) / 100.f;
+
+                stableDiffusion.callSD(params);
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button(u8"얼굴 수정(레퍼런스 페이스)")) {
+                FaceRefRedrawParams params;
+                params.region.prompt.workflowPath = "workflows\\FaceRedraw.json";
+                params.region.prompt.positivePrompt = string(posPrompt);
+                params.region.prompt.negativePrompt = string(negPrompt);
+                params.region.prompt.width = stoi(widths[widths_idx]);
+                params.region.prompt.height = stoi(heights[heights_idx]);
+                params.region.prompt.posePath = reference_images[0].path;
+
+                params.region.imagePath = base_image.path;
+                params.region.redrawRegion = string("a face");
+                params.region.strength = (100.f - denoise) / 100.f;
+
+                params.referencePath = reference_images[1].path;
+                params.referenceRegion = string("a face");
+
+                stableDiffusion.callSD(params);
+            }
+
+            static char regionPrompt[512];
+            ImGui::SetNextItemWidth(200);
+            ImGui::InputText(u8"수정 영역", regionPrompt, IM_ARRAYSIZE(regionPrompt));
+
+            ImGui::SameLine();
+
+            if (ImGui::Button(u8"영역 수정(베이스, 포즈)")) {
+                RegionRedrawParams params;
+                params.prompt.workflowPath = "workflows\\RegRedraw.json";
+                params.prompt.positivePrompt = string(posPrompt);
+                params.prompt.negativePrompt = string(negPrompt);
+                params.prompt.width = stoi(widths[widths_idx]);
+                params.prompt.height = stoi(heights[heights_idx]);
+                params.prompt.posePath = reference_images[0].path;
+
+                params.multiRegion = false;
+
+                params.imagePath = base_image.path;
+                params.redrawRegion = string(regionPrompt);
+                params.strength = (100.f - denoise) / 100.f;
+
+                stableDiffusion.callSD(params);
+            }
+
+            static char referencePrompt[512];
+            ImGui::SetNextItemWidth(200);
+            ImGui::InputText(u8"참고 영역", referencePrompt, IM_ARRAYSIZE(referencePrompt));
+
+            ImGui::SameLine();
+
+            if (ImGui::Button(u8"영역 참고 수정(베이스, 포즈, 레퍼런스)")) {
+                RefRedrawParams params;
+                params.region.prompt.workflowPath = "workflows\\RefRedraw.json";
+                params.region.prompt.positivePrompt = string(posPrompt);
+                params.region.prompt.negativePrompt = string(negPrompt);
+                params.region.prompt.width = stoi(widths[widths_idx]);
+                params.region.prompt.height = stoi(heights[heights_idx]);
+                params.region.prompt.posePath = reference_images[0].path;
+
+                params.region.imagePath = base_image.path;
+                params.region.redrawRegion = string(regionPrompt);
+                params.region.strength = (100.f - denoise) / 100.f;
+
+                params.referencePath = reference_images[2].path;
+                params.referenceRegion = string(referencePrompt);
+                stableDiffusion.callSD(params);
+            }
+
+            if (ImGui::Button(u8"일러스트 생성")) {
+                T2iParams params;
+                params.workflowPath = "workflows\\T2i.json";
+                params.positivePrompt = string(posPrompt);
+                params.negativePrompt = string(negPrompt);
+                params.width = stoi(widths[widths_idx]);
+                params.height = stoi(heights[heights_idx]);
+
+                stableDiffusion.callSD(params);
+            }
+
+
             ImGui::EndTabItem();
         }
-
-   /*     if (onGenerate)
-            this->progress = sd_api->getProgress();
-        ImGui::ProgressBar(this->progress);*/
+        
+        ImGui::ProgressBar(stableDiffusion.Progress());
 
         ImGui::EndTabBar();
     }
