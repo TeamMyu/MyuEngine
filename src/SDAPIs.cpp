@@ -11,6 +11,7 @@
 #include <future>
 #include <cstdlib>
 #include <filesystem>
+#include <chrono>
 
 using namespace nlohmann;
 using easywsclient::WebSocket;
@@ -166,11 +167,11 @@ void StableDiffusionAPI::callSD(PoseT2iParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["3"]["inputs"]["seed"] = rand();
@@ -213,11 +214,11 @@ void StableDiffusionAPI::callSD(RefRedrawParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["3"]["inputs"]["seed"] = rand();
@@ -264,11 +265,11 @@ void StableDiffusionAPI::callSD(FaceRefRedrawParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["3"]["inputs"]["seed"] = rand();
@@ -315,11 +316,11 @@ void StableDiffusionAPI::callSD(RegionRedrawParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["36"]["inputs"]["seed"] = rand();
@@ -364,11 +365,11 @@ void StableDiffusionAPI::callSD(HandsRedrawParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["130"]["inputs"]["seed"] = rand();
@@ -411,11 +412,11 @@ void StableDiffusionAPI::callSD(T2iParams params) {
 	json workflow;
 	raw_workflow >> workflow;
 
-	UUID uuid;
-	UuidCreate(&uuid);
+	// UUID uuid;
+	// UuidCreate(&uuid);
 
 	char* client_id = nullptr;
-	UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
+	// UuidToStringA(&uuid, (RPC_CSTR*)&client_id);
 
 	srand(time(0));
 	workflow["3"]["inputs"]["seed"] = rand();
@@ -467,7 +468,7 @@ void StableDiffusionAPI::EventLoop() {
 			std::thread(task).detach();
 			queueMutex.unlock();
 		}
-		Sleep(10);
+		std::this_thread::sleep_for(10ms);
 	}
 }
 

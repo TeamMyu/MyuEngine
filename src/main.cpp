@@ -1,25 +1,18 @@
-// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
-// (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-
-// Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
-
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <stdio.h>
-#include <iostream>
+
 #define GL_SILENCE_DEPRECATION
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <iostream>
+#include <filesystem>
+#include <stdio.h>
+
 #include "ImageGeneratorWindow.h"
+
+namespace fs = std::filesystem;
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -115,8 +108,8 @@ int main(int, char**)
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
 
-    // fix me!
-    io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\malgun.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
+    fs::path fontsPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "fonts";
+    io.Fonts->AddFontFromFileTTF((fontsPath / "malgun.ttf").string().c_str(), 18.0f, NULL, io.Fonts->GetGlyphRangesKorean());
 
     // Our state
     bool show_demo_window = true;

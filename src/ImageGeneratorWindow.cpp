@@ -20,8 +20,8 @@
 using std::thread;
 using namespace std;
 
-#include <Rpc.h>
-#pragma comment(lib, "Rpcrt4.lib")
+// #include <Rpc.h>
+// #pragma comment(lib, "Rpcrt4.lib")
 
 #include "../vendor/ImGuiFileDialog/ImGuiFileDialog.h"
 
@@ -151,10 +151,10 @@ void ImageComponent::Draw(float x, float y, float pad = 24.f) {
 
         if (drawWidth < x)
             ImGui::SetCursorPos({ ImGui::GetCursorPos().x + (x / 2.f - drawWidth / 2.f), ImGui::GetCursorPos().y });
-        
+
         if (drawHeight < y)
             ImGui::SetCursorPos({ ImGui::GetCursorPos().x , ImGui::GetCursorPos().y + (y / 2.f - drawHeight / 2.f) });
-                  
+
         drawWidth -= pad;
         drawHeight -= pad;
 
@@ -209,7 +209,7 @@ void ImageDialog(ImageComponent& image_component, int id, const char* title, flo
 
     ImGui::PushID(id);
     if (ImGui::Button("open file")) {
-        
+
         std::locale::global(std::locale("ko_KR.UTF-8"));
 
         IGFD::FileDialogConfig config;
@@ -242,13 +242,13 @@ void ImageDialog(ImageComponent& image_component, int id, const char* title, flo
 StableDiffusionAPI stableDiffusion;
 
 ImageGeneratorWindow::ImageGeneratorWindow() {
-    
+
 }
 
 //void ImageGeneratorWindow::GenCharacter(PoseT2iParams params) {
 //
 //    cout << sd_api->setModel(params.model) << endl;
-//    
+//
 //    stringstream ss;
 //    std::function<void(std::string)> callback = [this](std::string file) {
 //        while (!queueMutex.try_lock());
@@ -265,7 +265,7 @@ ImageGeneratorWindow::ImageGeneratorWindow() {
 //    params.posePath = "pose1.png";
 //    stableDiffusion.callSD(params);
 //
-//   
+//
 //
 //    unordered_map<string, string> id2class;
 //    string k_sampler;
@@ -329,21 +329,21 @@ void ImageGeneratorWindow::Draw() {
         }
         queueMutex.unlock();
 
-        if (ImGui::BeginTabItem(u8"Ä³¸¯ÅÍ »ı¼º"))
+        if (ImGui::BeginTabItem(u8"ìºë¦­í„° ìƒì„±"))
         {
-            ImGui::Text(u8"±àÁ¤ ÇÁ·ÒÇÁÆ®");
+            ImGui::Text(u8"ê¸ì • í”„ë¡¬í”„íŠ¸");
             static char posPrompt[512 * 6] = "";
             ImGui::InputTextMultiline("posPrompt", posPrompt, IM_ARRAYSIZE(posPrompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 6), 0);
 
-            ImGui::Text(u8"ºÎÁ¤ ÇÁ·ÒÇÁÆ®");
+            ImGui::Text(u8"ë¶€ì • í”„ë¡¬í”„íŠ¸");
             static char negPrompt[512 * 6] = "";
             ImGui::InputTextMultiline("negPrompt", negPrompt, IM_ARRAYSIZE(negPrompt), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 6), 0);
-            
+
             static int denoise = 0;
             ImGui::SetNextItemWidth(150);
-            ImGui::DragInt(u8"¿øº» À¯Áö °­µµ", &denoise, 1.f, 0, 100, "%d %%");
+            ImGui::DragInt(u8"ì›ë³¸ ìœ ì§€ ê°•ë„", &denoise, 1.f, 0, 100, "%d %%");
             ImGui::SameLine(275);
-            
+
             static vector<string> widths = { "512","768","832","896","1024" ,"1152" ,"1216" ,"1344" ,"1536" };
             static int widths_idx = 0;
             ImGui::SetNextItemWidth(150);
@@ -401,32 +401,32 @@ void ImageGeneratorWindow::Draw() {
             ImGui::EndGroup();
 
             ImGui::SameLine();
-  
-            ImageDialog(base_image, 98, u8"º£ÀÌ½º ÀÌ¹ÌÁö", 512.f, 512.f);
-            
-            ImGui::SameLine();
 
-            reference_images.emplace_back();
-            ImageDialog(reference_images[0], 99, u8"Âü°íÇÒ Æ÷Áî", 256.f, 256.f);
+            ImageDialog(base_image, 98, u8"ë² ì´ìŠ¤ ì´ë¯¸ì§€", 512.f, 512.f);
 
             ImGui::SameLine();
 
             reference_images.emplace_back();
-            ImageDialog(reference_images[1], 100, u8"Âü°íÇÒ ¾ó±¼", 256.f, 256.f);
+            ImageDialog(reference_images[0], 99, u8"ì°¸ê³ í•  í¬ì¦ˆ", 256.f, 256.f);
 
             ImGui::SameLine();
-   
-            reference_images.emplace_back();
-            ImageDialog(reference_images[2], 101, u8"Âü°íÇÒ ÀÌ¹ÌÁö", 256.f, 256.f);
 
-            if (ImGui::Button(u8"Ä³¸¯ÅÍ »ı¼º(Æ÷Áî)")) {
+            reference_images.emplace_back();
+            ImageDialog(reference_images[1], 100, u8"ì°¸ê³ í•  ì–¼êµ´", 256.f, 256.f);
+
+            ImGui::SameLine();
+
+            reference_images.emplace_back();
+            ImageDialog(reference_images[2], 101, u8"ì°¸ê³ í•  ì´ë¯¸ì§€", 256.f, 256.f);
+
+            if (ImGui::Button(u8"ìºë¦­í„° ìƒì„±(í¬ì¦ˆ)")) {
                 PoseT2iParams params;
                 params.workflowPath = "workflows\\PoseT2i.json";
                 params.positivePrompt = string(posPrompt);
                 params.negativePrompt = string(negPrompt);
                 params.width = stoi(widths[widths_idx]);
                 params.height = stoi(heights[heights_idx]);
-              
+
                 params.posePath = reference_images[0].path;
 
                 stableDiffusion.callSD(params);
@@ -434,7 +434,7 @@ void ImageGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"¼Õ ¼öÁ¤")) {
+            if (ImGui::Button(u8"ì† ìˆ˜ì •")) {
                 HandsRedrawParams params;
                 params.region.prompt.workflowPath = "workflows\\HandsRedraw.json";
                 params.region.prompt.positivePrompt = string(posPrompt);
@@ -452,7 +452,7 @@ void ImageGeneratorWindow::Draw() {
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"¾ó±¼ ¼öÁ¤(·¹ÆÛ·±½º ÆäÀÌ½º)")) {
+            if (ImGui::Button(u8"ì–¼êµ´ ìˆ˜ì •(ë ˆí¼ëŸ°ìŠ¤ í˜ì´ìŠ¤)")) {
                 FaceRefRedrawParams params;
                 params.region.prompt.workflowPath = "workflows\\FaceRedraw.json";
                 params.region.prompt.positivePrompt = string(posPrompt);
@@ -473,11 +473,11 @@ void ImageGeneratorWindow::Draw() {
 
             static char regionPrompt[512];
             ImGui::SetNextItemWidth(200);
-            ImGui::InputText(u8"¼öÁ¤ ¿µ¿ª", regionPrompt, IM_ARRAYSIZE(regionPrompt));
+            ImGui::InputText(u8"ìˆ˜ì • ì˜ì—­", regionPrompt, IM_ARRAYSIZE(regionPrompt));
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"¿µ¿ª ¼öÁ¤(º£ÀÌ½º, Æ÷Áî)")) {
+            if (ImGui::Button(u8"ì˜ì—­ ìˆ˜ì •(ë² ì´ìŠ¤, í¬ì¦ˆ)")) {
                 RegionRedrawParams params;
                 params.prompt.workflowPath = "workflows\\RegRedraw.json";
                 params.prompt.positivePrompt = string(posPrompt);
@@ -497,11 +497,11 @@ void ImageGeneratorWindow::Draw() {
 
             static char referencePrompt[512];
             ImGui::SetNextItemWidth(200);
-            ImGui::InputText(u8"Âü°í ¿µ¿ª", referencePrompt, IM_ARRAYSIZE(referencePrompt));
+            ImGui::InputText(u8"ì°¸ê³  ì˜ì—­", referencePrompt, IM_ARRAYSIZE(referencePrompt));
 
             ImGui::SameLine();
 
-            if (ImGui::Button(u8"¿µ¿ª Âü°í ¼öÁ¤(º£ÀÌ½º, Æ÷Áî, ·¹ÆÛ·±½º)")) {
+            if (ImGui::Button(u8"ì˜ì—­ ì°¸ê³  ìˆ˜ì •(ë² ì´ìŠ¤, í¬ì¦ˆ, ë ˆí¼ëŸ°ìŠ¤)")) {
                 RefRedrawParams params;
                 params.region.prompt.workflowPath = "workflows\\RefRedraw.json";
                 params.region.prompt.positivePrompt = string(posPrompt);
@@ -519,7 +519,7 @@ void ImageGeneratorWindow::Draw() {
                 stableDiffusion.callSD(params);
             }
 
-            if (ImGui::Button(u8"ÀÏ·¯½ºÆ® »ı¼º")) {
+            if (ImGui::Button(u8"ì¼ëŸ¬ìŠ¤íŠ¸ ìƒì„±")) {
                 T2iParams params;
                 params.workflowPath = "workflows\\T2i.json";
                 params.positivePrompt = string(posPrompt);
@@ -533,7 +533,7 @@ void ImageGeneratorWindow::Draw() {
 
             ImGui::EndTabItem();
         }
-        
+
         ImGui::ProgressBar(stableDiffusion.Progress());
 
         ImGui::EndTabBar();
