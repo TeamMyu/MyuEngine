@@ -30,6 +30,16 @@ add_executable(${PROJECT_NAME}
     src/GL/UIImage.cpp
     src/GL/UIElement.cpp
     src/GL/UIText.cpp
+    
+    # websocket
+    vendor/easywsclient/easywsclient.cpp
+    vendor/easywsclient/easywsclient.hpp
+    
+    # stable diffusion
+    src/SDAPIs.h
+    src/SDAPIs.cpp
+    src/ImageGeneratorWindow.h
+    src/ImageGeneratorWindow.cpp
 )
 
 
@@ -42,6 +52,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/vendor/imgui
     ${PROJECT_SOURCE_DIR}/vendor/imgui/backends
+    ${PROJECT_SOURCE_DIR}/vendor/easywsclient
 )
 
 # glfw 링크
@@ -51,4 +62,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 find_package(Freetype REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype)
 
-
+# link httplib
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/cpp-httplib)
+target_link_libraries(${PROJECT_NAME} httplib::httplib)
