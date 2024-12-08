@@ -329,7 +329,7 @@ void ImageGeneratorWindow::Draw() {
         }
         queueMutex.unlock();
 
-        if (ImGui::BeginTabItem(u8"캐릭터 생성"))
+        if (ImGui::BeginTabItem(u8"캐릭터 생성 테스트"))
         {
             ImGui::Text(u8"긍정 프롬프트");
             static char posPrompt[512 * 6] = "";
