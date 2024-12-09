@@ -52,4 +52,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/freetype)
 target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
 
+# sol2 링크
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/sol2)
+target_link_libraries(${PROJECT_NAME} PRIVATE sol2)
 
+# lua 링크
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/lua-5.4.7)
+target_link_libraries(${PROJECT_NAME} PRIVATE lua)
