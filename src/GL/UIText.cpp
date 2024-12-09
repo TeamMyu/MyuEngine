@@ -1,15 +1,15 @@
 #include "GL/UIText.h"
 #include <iostream>
 
-UIText::UIText(Shader& shader, const std::string& text, const glm::vec2& position, float scale)
-    : UIElement(shader, position, glm::vec2(0.0f))
+UIText::UIText(Shader& shader, const std::wstring& text, const glm::vec2& position, float scale)
+    : UIElement(shader, position, glm::vec2(scale))
     , text(text)
     , ft(nullptr)
     , face(nullptr)
 {
     // FreeType 초기화
     if (FT_Init_FreeType(&ft)) {
-        std::cout << "ERROR::FREETYPE: FreeType 라이브러리를 초기화하지 못했습니다" << std::endl;
+        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
         return;
     }
 
@@ -44,6 +44,45 @@ UIText::~UIText()
         FT_Done_FreeType(ft);
 }
 
+void UIText::loadCharacter(FT_Face &face, wchar_t c)
+{
+    if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+        std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+        std::cout << " failed load font glyph: " << c << std::endl;
+        return;
+    }
+
+    // 텍스처 생성
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    if (face->glyph->bitmap.buffer)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+    }
+    else // 버퍼가 비어있을 경우, 1x1 픽셀 크기의 텍스처를 생성
+    {
+        unsigned char emptyPixel = 0;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 1, 1, 0, GL_RED, GL_UNSIGNED_BYTE, &emptyPixel);
+    }
+
+    // 텍스처 설정
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // 문자 정보 저장
+    Character character = {
+        texture,
+        glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+        glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+        static_cast<unsigned int>(face->glyph->advance.x)
+    };
+    characters.insert(std::pair<wchar_t, Character>(c, character));
+}
+
 void UIText::setFont(const std::string& fontPath)
 {
     // 이전 face가 있다면 정리
@@ -53,7 +92,7 @@ void UIText::setFont(const std::string& fontPath)
 
     // 폰트 로드
     if (FT_New_Face(ft, fontPath.c_str(), 0, &face)) {
-        std::cout << "ERROR::FREETYPE: 폰트를 로드하지 못했습니다 - " << fontPath << std::endl;
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
         return;
     }
 
@@ -64,43 +103,14 @@ void UIText::setFont(const std::string& fontPath)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     // 모든 ASCII 문자에 대해 글리프 로드
-    for (unsigned char c = 0; c < 128; c++) {
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            std::cout << "ERROR::FREETYPE: 글리프 로드 실패 - " << c << std::endl;
-            continue;
-        }
+    for (wchar_t c = 0; c < 128; c++)
+        loadCharacter(face, c);
 
-        // 텍스처 생성
-        unsigned int texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RED,
-            face->glyph->bitmap.width,
-            face->glyph->bitmap.rows,
-            0,
-            GL_RED,
-            GL_UNSIGNED_BYTE,
-            face->glyph->bitmap.buffer
-        );
+    // 한글 문자에 대해 글리프 로드
+    for (wchar_t c = 0xAC00; c < 0xD7A3; c++)
+        loadCharacter(face, c);
 
-        // 텍스처 설정
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // 문자 정보 저장
-        Character character = {
-            texture,
-            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-            static_cast<unsigned int>(face->glyph->advance.x)
-        };
-        characters.insert(std::pair<char, Character>(c, character));
-    }
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // 원복시키기
 }
 
 void UIText::draw()
@@ -109,7 +119,7 @@ void UIText::draw()
     if (characters.empty()) return;  // 문자 맵이 비어있으면 그리지 않음
 
     shader->use();
-    shader->setMatrix4f("projection", getTransformMatrix());
+    shader->setMatrix4f("model", getTransformMatrix());
     shader->setVector4f("textColor", getColor());
 
     glActiveTexture(GL_TEXTURE0);
@@ -120,7 +130,7 @@ void UIText::draw()
     float scale = 1.0f;
 
     // 각 문자 렌더링
-    for (char c : text) {
+    for (wchar_t c : text) {
         Character ch = characters[c];
 
         float xpos = x + ch.bearing.x * scale;

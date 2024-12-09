@@ -64,6 +64,10 @@ int main(int, char**)
         return -1;
     }
 
+    // GLAD 초기화 후에 추가
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // 자주 사용 할 경로 미리 세팅
     fs::path texturesPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "textures";
     fs::path shadersPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "shaders";
@@ -114,19 +118,20 @@ int main(int, char**)
     Shader textShader((shadersPath / "text.vert").string(), (shadersPath / "text.frag").string());
     textShader.use();
     textShader.setInt("text", 0);
-    textShader.setMatrix4f("projection", camera.getProjectionMatrix());
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
+                                     0.0f, static_cast<float>(screenHeight),
+                                     -1.0f, 1.0f);
+    textShader.setMatrix4f("projection", projection);
 
     // UI 텍스트 생성
     auto text = std::make_shared<UIText>(
         textShader,
-        "Hello, World!",
-        glm::vec2(10.0f, 450.0f),
+        L"안녕하세요, World!",
+        glm::vec2(0.0f, 300.0f),
         1.0f
     );
-    text->setFont((fontsPath / "NanumSquareB.ttf").string());  // setFont가 성공적으로 호출되었는지 확인
-
-    // UI 이미지에 자식으로 추가
-    image->addChild(std::static_pointer_cast<UIElement>(text));
+    text->setFont((fontsPath / "NanumGothic.ttf").string());  // setFont가 성공적으로 호출되었는지 확인
+    text->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     // 메인 루프
     while (!glfwWindowShouldClose(window))
@@ -141,11 +146,13 @@ int main(int, char**)
             sprite->draw();
         }
 
-        glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
-                                          static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
-        uiShader.use();
-        uiShader.setMatrix4f("projection", projection);
-        image->draw();
+        text->draw();
+
+        // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
+        //                                   static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
+        // uiShader.use();
+        // uiShader.setMatrix4f("projection", projection);
+        // image->draw();
 
         glfwSwapBuffers(window);
     }
