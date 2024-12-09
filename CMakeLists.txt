@@ -48,7 +48,8 @@ include_directories(
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-find_package(Freetype REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Freetype::Freetype)
+# freetype 링크
+add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/freetype)
+target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
 
 
