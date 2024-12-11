@@ -13,7 +13,9 @@
 class Sprite
 {
 public:
-    Sprite(Texture2D& texture, Shader& shader, glm::vec3 position, glm::vec3 size);
+    Sprite(Texture2D& texture, std::shared_ptr<Shader> shader, glm::vec3 position, glm::vec3 size);
+    Sprite(Texture2D& texture, glm::vec3 position, glm::vec3 size, glm::vec3 rotation);
+
     ~Sprite() = default;
 
     // 기본적인 변환 메서드들
@@ -31,8 +33,8 @@ public:
     inline void setColor(const glm::vec4& newColor) { color = newColor; }
 
     // 셰이더 관련 메서드 추가
-    inline void setShader(Shader& newShader) { shader = &newShader; }
-    inline Shader* getShader() const { return shader; }
+    inline void setShader(std::shared_ptr<Shader> newShader) { shader = newShader; }
+    inline std::shared_ptr<Shader> getShader() const { return shader; }
 
     // Sorting order 관련 메서드 추가
     inline void setSortingOrder(int order) { sortingOrder = order; }
@@ -40,7 +42,7 @@ public:
 
 private:
     Texture2D* texture;
-    Shader* shader;
+    std::shared_ptr<Shader> shader;
     glm::vec3 position;
     glm::vec3 scale;
     float rotation;

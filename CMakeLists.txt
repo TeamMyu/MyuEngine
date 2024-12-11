@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(${PROJECT_NAME}
     src/main.cpp
 
-    # glad
-    src/glad.c
+    # stb_image
+    vendor/stb/stb_image.cpp
 
     # imgui
     vendor/imgui/imgui_demo.cpp
@@ -20,6 +20,7 @@ add_executable(${PROJECT_NAME}
     vendor/imgui/backends/imgui_impl_opengl3.cpp
 
     # openGL base classes
+    src/GL/glad.c
     src/GL/Texture2D.cpp
     src/GL/Shader.cpp
     src/GL/Sprite.cpp
@@ -30,6 +31,11 @@ add_executable(${PROJECT_NAME}
     src/GL/UIImage.cpp
     src/GL/UIElement.cpp
     src/GL/UIText.cpp
+
+    # MyuEngine
+    src/MyuEngine/Character.cpp
+    src/MyuEngine/ShaderManager.cpp
+    src/MyuEngine/CameraService.cpp
 )
 
 
@@ -42,6 +48,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/vendor/imgui
     ${PROJECT_SOURCE_DIR}/vendor/imgui/backends
+    ${PROJECT_SOURCE_DIR}/vendor/stb
 )
 
 # glfw 링크

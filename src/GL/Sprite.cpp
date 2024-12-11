@@ -1,8 +1,10 @@
 #include "GL/Sprite.h"
+#include "MyuEngine/ShaderManager.h"
+#include "MyuEngine/CameraService.h"
 
-Sprite::Sprite(Texture2D& texture, Shader& shader, glm::vec3 position, glm::vec3 size)
+Sprite::Sprite(Texture2D& texture, std::shared_ptr<Shader> shader, glm::vec3 position, glm::vec3 size)
     : texture(&texture)
-    , shader(&shader)
+    , shader(shader)
     , position(position)
     , scale(size)
     , rotation(0.0f)
@@ -37,23 +39,36 @@ Sprite::Sprite(Texture2D& texture, Shader& shader, glm::vec3 position, glm::vec3
     vao.unbind();
 }
 
+Sprite::Sprite(Texture2D& texture, glm::vec3 position, glm::vec3 size, glm::vec3 rotation)
+    : Sprite(texture, ShaderManager::getInstance().getShader("sprite-default"), position, size)
+{
+}
+
 void Sprite::draw() {
+    // 1. 셰이더 활성화
     shader->use();
 
-    // 단순화된 모델 행렬 계산
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);    // 위치 변환
-    model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));    // 회전
-    model = glm::scale(model, scale);    // 크기 변환
+    // 2. 텍스처 바인딩 (셰이더 유니폼 설정 전에)
+    texture->bind(GL_TEXTURE0);
 
-    // 셰이더 유니폼 설정
+    // 3. 셰이더 유니폼 설정
+    shader->setInt("mainTex", 0);
+
+    // 모델 행렬 계산 및 설정
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, scale);
+
     shader->setMatrix4f("model", model);
     shader->setVector4f("spriteColor", color);
 
-    // 텍스처 바인딩
-    texture->bind(GL_TEXTURE0);
+    if (auto* camera = CameraService::getMainCamera())
+        shader->setMatrix4f("projection", camera->getProjectionMatrix());
+    else
+        std::cerr << "메인 카메라가 등록되지 않았습니다!" << std::endl;
 
-    // 렌더링
+    // 4. 렌더링
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.unbind();

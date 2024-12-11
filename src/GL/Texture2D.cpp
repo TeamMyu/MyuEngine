@@ -1,9 +1,10 @@
-#include "GL/Texture2D.h"
-
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "GL/Texture2D.h"
+
 #include <iostream>
+
+Texture2D::Texture2D() : id(0) {}
 
 Texture2D::Texture2D(const std::string& path, GLint format, GLenum fileFormat)
 {
@@ -18,12 +19,14 @@ Texture2D::Texture2D(const std::string& path, GLint format, GLenum fileFormat)
 
     int width, height, nChannels;
     unsigned char *data = stbi_load(path.c_str(), &width, &height, &nChannels, 0);
+
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         std::cout << "Successfully loaded texture from: " << path << std::endl;
+        std::cout << "Texture created at address: " << this << " with ID: " << this->id << std::endl;
     }
     else
     {
@@ -36,11 +39,32 @@ Texture2D::Texture2D(const std::string& path, GLint format, GLenum fileFormat)
 
 Texture2D::~Texture2D()
 {
-    glDeleteTextures(1, &this->id);
+    if (this->id != 0)
+    {
+        glDeleteTextures(1, &this->id);
+        std::cout << "Texture destroyed at address: " << this << " with ID: " << this->id << std::endl;
+    }
 }
 
 void Texture2D::bind(GLenum unit)
 {
     glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, this->id);
+}
+
+Texture2D::Texture2D(Texture2D&& other) noexcept {
+    id = other.id;                // 다른 객체의 리소스를 가져옴
+    other.id = 0;                 // 다른 객체의 리소스를 무효화
+}
+
+Texture2D& Texture2D::operator=(Texture2D&& other) noexcept {
+    if (this != &other) {
+        if (this->id != 0) {      // 기존 리소스가 있다면
+            glDeleteTextures(1, &this->id);  // 기존 리소스 해제
+        }
+
+        id = other.id;            // 새 리소스 가져옴
+        other.id = 0;             // 원본 리소스 무효화
+    }
+    return *this;
 }

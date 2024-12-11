@@ -1,19 +1,23 @@
-#include "GL/Texture2D.h"
-#include "GL/Shader.h"
-#include "GL/Sprite.h"
-#include "GL/Camera2D.h"
-#include "GL/UIImage.h"
-#include "GL/UIText.h"
-#define GL_SILENCE_DEPRECATION
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <filesystem>
 #include <vector>
 #include <algorithm>
 #include <memory>
 
+#define GL_SILENCE_DEPRECATION
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include "GL/Camera2D.h"
+#include "GL/Shader.h"
+#include "GL/Sprite.h"
+#include "GL/Texture2D.h"
+#include "GL/UIImage.h"
+#include "GL/UIText.h"
+
+#include "MyuEngine/CameraService.h"
+#include "MyuEngine/ShaderManager.h"
+#include "MyuEngine/Character.h"
 namespace fs = std::filesystem;
 
 int screenWidth = 800;
@@ -36,6 +40,12 @@ int main(int, char**)
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
+
+    // 윈도우일 때, 콘솔에 출력할 글자 인코딩 설정
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+    #endif
 
     // OpenGL 버전 설정
 #if defined(__APPLE__)
@@ -68,45 +78,38 @@ int main(int, char**)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 자주 사용 할 경로 미리 세팅
-    fs::path texturesPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "textures";
-    fs::path shadersPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "shaders";
-    fs::path fontsPath = fs::path(__FILE__).parent_path().parent_path() / "resources" / "fonts";
+    auto& shaderManager = ShaderManager::getInstance();
 
-    // 셰이더와 텍스처 로드
-    Shader uiShader((shadersPath / "ui.vert").string(), (shadersPath / "ui.frag").string());
-    Texture2D imageTexture((texturesPath / "ui_test.png").string(), GL_RGBA, GL_RGBA);
+    // 스프라이트 기본 셰이더 로드
+    if (!shaderManager.loadShader("sprite-default")) {
+        return -1;
+    }
 
-    // UI 이미지 생성
-    auto image = std::make_shared<UIImage>(
-        uiShader,
-        imageTexture,
-        glm::vec2(0.0f, 400.0f),  // 위치
-        glm::vec2(800.0f, 150.0f)   // 크기
-    );
-    image->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 0.8f));  // 약간 투명하게
-
-    Texture2D anyaTexture((texturesPath / "anya.jpg").string(), GL_RGB, GL_RGB);
-    Texture2D tomoriTexture((texturesPath / "tomori.jpg").string(), GL_RGB, GL_RGB);
-
-    Shader spriteShader((shadersPath / "sprite.vert").string(), (shadersPath / "sprite.frag").string());
-    spriteShader.use();
-    spriteShader.setInt("mainTexture", 0);
+    // UI 이미지 기본 셰이더 로드
+    if (!shaderManager.loadShader("ui-image-default")) {
+        return -1;
+    }
 
     Camera2D camera(glm::vec2(0, 0), 2, 2);
-    spriteShader.setMatrix4f("projection", camera.getProjectionMatrix());
+    CameraService::registerMainCamera(&camera);
 
-    // 일반 벡터 사용
-    std::vector<std::unique_ptr<Sprite>> sprites;
+    // Texture2D imageTexture((texturesPath / "ui_test.png").string(), GL_RGBA, GL_RGBA);
 
-    // 스프라이트 추가
-    sprites.push_back(std::make_unique<Sprite>(anyaTexture, spriteShader,
-        glm::vec3(-0.5f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
-    sprites.back()->setSortingOrder(0);
+    // // UI 이미지 생성
+    // auto image = std::make_shared<UIImage>(
+    //     uiShader,
+    //     imageTexture,
+    //     glm::vec2(0.0f, 400.0f),  // 위치
+    //     glm::vec2(800.0f, 150.0f)   // 크기
+    // );
+    // image->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 0.8f));  // 약간 투명하게
 
-    sprites.push_back(std::make_unique<Sprite>(tomoriTexture, spriteShader,
-        glm::vec3(0.25f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
-    sprites.back()->setSortingOrder(1);
+    // Texture2D tomoriTexture((texturesPath / "tomori.jpg").string(), GL_RGB, GL_RGB);
+
+    Character taigaCharacter("taiga", glm::vec2(0.0f, 0.0f));
+
+    std::vector<std::shared_ptr<Sprite>> sprites;
+    sprites.push_back(taigaCharacter.getSprite());
 
     // 정렬
     std::sort(sprites.begin(), sprites.end(),
@@ -114,24 +117,24 @@ int main(int, char**)
             return a->getSortingOrder() < b->getSortingOrder();
     });
 
-    // 텍스트 셰이더 로드
-    Shader textShader((shadersPath / "text.vert").string(), (shadersPath / "text.frag").string());
-    textShader.use();
-    textShader.setInt("text", 0);
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
-                                     0.0f, static_cast<float>(screenHeight),
-                                     -1.0f, 1.0f);
-    textShader.setMatrix4f("projection", projection);
+    // // 텍스트 셰이더 로드
+    // Shader textShader((shadersPath / "text.vert").string(), (shadersPath / "text.frag").string());
+    // textShader.use();
+    // textShader.setInt("text", 0);
+    // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
+    //                                  0.0f, static_cast<float>(screenHeight),
+    //                                  -1.0f, 1.0f);
+    // textShader.setMatrix4f("projection", projection);
 
-    // UI 텍스트 생성
-    auto text = std::make_shared<UIText>(
-        textShader,
-        L"안녕하세요, World!",
-        glm::vec2(0.0f, 300.0f),
-        1.0f
-    );
-    text->setFont((fontsPath / "NanumGothic.ttf").string());  // setFont가 성공적으로 호출되었는지 확인
-    text->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    // // UI 텍스트 생성
+    // auto text = std::make_shared<UIText>(
+    //     textShader,
+    //     L"안녕하세요, World!",
+    //     glm::vec2(0.0f, 300.0f),
+    //     1.0f
+    // );
+    // text->setFont((fontsPath / "NanumGothic.ttf").string());  // setFont가 성공적으로 호출되었는지 확인
+    // text->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
     // 메인 루프
     while (!glfwWindowShouldClose(window))
@@ -146,7 +149,7 @@ int main(int, char**)
             sprite->draw();
         }
 
-        text->draw();
+        // text->draw();
 
         // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
         //                                   static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
