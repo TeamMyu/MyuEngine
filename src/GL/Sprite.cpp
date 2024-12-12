@@ -10,16 +10,19 @@ Sprite::Sprite(Texture2D& texture, std::shared_ptr<Shader> shader, glm::vec3 pos
     , rotation(0.0f)
     , color(1.0f)
 {
-    // 중심이 (0,0,0)이 되도록 버텍스 데이터 수정
-    std::vector<float> vertices = {
-        // 위치              // 텍스처 좌표
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,  // 좌상단
-         0.5f, -0.5f, 0.0f,   1.0f, 0.0f,  // 우하단
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f,  // 좌하단
+    // 텍스처의 가로세로 비율 계산
+    float aspectRatio = static_cast<float>(texture.getWidth()) / static_cast<float>(texture.getHeight());
 
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,  // 좌상단
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f,  // 우상단
-         0.5f, -0.5f, 0.0f,   1.0f, 0.0f   // 우하단
+    // 가로세로 비율을 고려한 버텍스 데이터 생성
+    std::vector<float> vertices = {
+        // 위치                           // 텍스처 좌표
+        -0.5f * aspectRatio,  0.5f, 0.0f,   0.0f, 1.0f,  // 좌상단
+         0.5f * aspectRatio, -0.5f, 0.0f,   1.0f, 0.0f,  // 우하단
+        -0.5f * aspectRatio, -0.5f, 0.0f,   0.0f, 0.0f,  // 좌하단
+
+        -0.5f * aspectRatio,  0.5f, 0.0f,   0.0f, 1.0f,  // 좌상단
+         0.5f * aspectRatio,  0.5f, 0.0f,   1.0f, 1.0f,  // 우상단
+         0.5f * aspectRatio, -0.5f, 0.0f,   1.0f, 0.0f   // 우하단
     };
 
     // VBO 설정

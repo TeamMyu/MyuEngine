@@ -1,3 +1,5 @@
+#pragma once
+
 #include "GL/Texture2D.h"
 #include "GL/Sprite.h"
 #include <memory>
@@ -36,6 +38,8 @@ public:
     {
         return this->texture;
     }
+
+    void say(const std::string& text);
 
 private:
     glm::vec2 position;

@@ -1,9 +1,11 @@
 #include "MyuEngine/Character.h"
+#include "MyuEngine/ResourceManager.h"
+#include "MyuEngine/DialogueManager.h"
 
 Character::Character(std::string textureName, glm::vec2 position)
 : position(position)
 {
-    std::filesystem::path texturesPath = std::filesystem::path(__FILE__).parent_path() / ".." / ".." / "resources" / "textures";
+    std::filesystem::path texturesPath = ResourceManager::getInstance()->getTexturesPath();
 
     this->texture = Texture2D((texturesPath / (textureName + ".png")).generic_string(), GL_RGBA, GL_RGBA);
 
@@ -18,4 +20,8 @@ Character::Character(std::string textureName, glm::vec2 position)
 Character::Character(std::string textureName, float x, float y)
 : Character(textureName, glm::vec2(x, y))
 {
+}
+
+void Character::say(const std::string& text) {
+    DialogueManager::GetInstance().showDialogue(text);
 }

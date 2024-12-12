@@ -22,7 +22,9 @@ Texture2D::Texture2D(const std::string& path, GLint format, GLenum fileFormat)
 
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
+        this->width = width;
+        this->height = height;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, this->width, this->height, 0, fileFormat, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         std::cout << "Successfully loaded texture from: " << path << std::endl;
@@ -30,6 +32,8 @@ Texture2D::Texture2D(const std::string& path, GLint format, GLenum fileFormat)
     }
     else
     {
+        this->width = 0;
+        this->height = 0;
         std::cerr << "Failed to load texture: " << path << std::endl;
         std::cerr << "STB Error: " << stbi_failure_reason() << std::endl;
     }
@@ -54,7 +58,11 @@ void Texture2D::bind(GLenum unit)
 
 Texture2D::Texture2D(Texture2D&& other) noexcept {
     id = other.id;                // 다른 객체의 리소스를 가져옴
+    width = other.width;          // width 복사 추가
+    height = other.height;        // height 복사 추가
     other.id = 0;                 // 다른 객체의 리소스를 무효화
+    other.width = 0;              // width 초기화
+    other.height = 0;             // height 초기화
 }
 
 Texture2D& Texture2D::operator=(Texture2D&& other) noexcept {
@@ -64,7 +72,11 @@ Texture2D& Texture2D::operator=(Texture2D&& other) noexcept {
         }
 
         id = other.id;            // 새 리소스 가져옴
+        width = other.width;      // width 복사 추가
+        height = other.height;    // height 복사 추가
         other.id = 0;             // 원본 리소스 무효화
+        other.width = 0;          // width 초기화
+        other.height = 0;         // height 초기화
     }
     return *this;
 }

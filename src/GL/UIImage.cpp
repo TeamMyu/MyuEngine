@@ -1,5 +1,10 @@
 #include "GL/UIImage.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
+#include "MyuEngine/WindowManager.h"
+
 UIImage::UIImage(Shader& shader, Texture2D& texture, const glm::vec2& position, const glm::vec2& size)
     : UIElement(shader, position, size)
     , texture(&texture)
@@ -19,6 +24,10 @@ void UIImage::draw()
     shader->setMatrix4f("model", getTransformMatrix());
     shader->setVector4f("color", getColor());
 
+    auto& wm = WindowManager::getInstance();
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(wm.getWidth()), static_cast<float>(wm.getHeight()), 0.0f, -1.0f, 1.0f);
+    shader->setMatrix4f("projection", projection);
+
     // 텍스처 바인딩
     texture->bind(GL_TEXTURE0);
 
@@ -31,4 +40,4 @@ void UIImage::draw()
     for (const auto& child : children) {
         child->draw();
     }
-} 
+}

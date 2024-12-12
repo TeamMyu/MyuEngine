@@ -22,6 +22,10 @@ public:
 
     void bind(GLenum unit);
 
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+
 private:
     GLuint id;
+    int width, height;
 };

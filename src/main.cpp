@@ -1,8 +1,5 @@
 #include <iostream>
 #include <filesystem>
-#include <vector>
-#include <algorithm>
-#include <memory>
 
 #define GL_SILENCE_DEPRECATION
 #include <glad/glad.h>
@@ -10,14 +7,14 @@
 
 #include "GL/Camera2D.h"
 #include "GL/Shader.h"
-#include "GL/Sprite.h"
-#include "GL/Texture2D.h"
-#include "GL/UIImage.h"
-#include "GL/UIText.h"
 
 #include "MyuEngine/CameraService.h"
 #include "MyuEngine/ShaderManager.h"
-#include "MyuEngine/Character.h"
+#include "MyuEngine/ScriptManager.h"
+#include "MyuEngine/SpriteManager.h"
+#include "MyuEngine/ResourceManager.h"
+#include "MyuEngine/DialogueManager.h"
+
 namespace fs = std::filesystem;
 
 int screenWidth = 800;
@@ -58,7 +55,7 @@ int main(int, char**)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
 
-    // 윈도우 생성
+    // 윈도우 성
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL Window", nullptr, nullptr);
     if (window == nullptr)
         return 1;
@@ -90,51 +87,26 @@ int main(int, char**)
         return -1;
     }
 
+    // 텍스 기본 셰이더 로드
+    if (!shaderManager.loadShader("ui-text-default")) {
+        return -1;
+    }
+
     Camera2D camera(glm::vec2(0, 0), 2, 2);
     CameraService::registerMainCamera(&camera);
 
-    // Texture2D imageTexture((texturesPath / "ui_test.png").string(), GL_RGBA, GL_RGBA);
+    // DialogueManager 초기화
+    DialogueManager::GetInstance().initialize("dialogue_box", "NanumGothic");
+    // DialogueManager::GetInstance().showDialogue("안녕하세요, World!");
 
-    // // UI 이미지 생성
-    // auto image = std::make_shared<UIImage>(
-    //     uiShader,
-    //     imageTexture,
-    //     glm::vec2(0.0f, 400.0f),  // 위치
-    //     glm::vec2(800.0f, 150.0f)   // 크기
-    // );
-    // image->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 0.8f));  // 약간 투명하게
+    // 스프라이트 매니저 사용
+    auto& spriteManager = SpriteManager::GetInstance();
 
-    // Texture2D tomoriTexture((texturesPath / "tomori.jpg").string(), GL_RGB, GL_RGB);
-
-    Character taigaCharacter("taiga", glm::vec2(0.0f, 0.0f));
-
-    std::vector<std::shared_ptr<Sprite>> sprites;
-    sprites.push_back(taigaCharacter.getSprite());
-
-    // 정렬
-    std::sort(sprites.begin(), sprites.end(),
-        [](const auto& a, const auto& b) {
-            return a->getSortingOrder() < b->getSortingOrder();
-    });
-
-    // // 텍스트 셰이더 로드
-    // Shader textShader((shadersPath / "text.vert").string(), (shadersPath / "text.frag").string());
-    // textShader.use();
-    // textShader.setInt("text", 0);
-    // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
-    //                                  0.0f, static_cast<float>(screenHeight),
-    //                                  -1.0f, 1.0f);
-    // textShader.setMatrix4f("projection", projection);
-
-    // // UI 텍스트 생성
-    // auto text = std::make_shared<UIText>(
-    //     textShader,
-    //     L"안녕하세요, World!",
-    //     glm::vec2(0.0f, 300.0f),
-    //     1.0f
-    // );
-    // text->setFont((fontsPath / "NanumGothic.ttf").string());  // setFont가 성공적으로 호출되었는지 확인
-    // text->setColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ScriptManager scriptManager;
+    std::filesystem::path scriptPath = ResourceManager::getInstance()->getScriptsPath() / "main.lua";
+    if (!scriptManager.ExecuteFile(scriptPath.generic_string())) {
+        return -1;
+    }
 
     // 메인 루프
     while (!glfwWindowShouldClose(window))
@@ -144,18 +116,12 @@ int main(int, char**)
         glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // 그리기
-        for (auto& sprite : sprites) {
+        // 정렬된 순서대로 모든 스프라이트 그리기
+        for (const auto& sprite : spriteManager.GetSprites()) {
             sprite->draw();
         }
 
-        // text->draw();
-
-        // glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth),
-        //                                   static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
-        // uiShader.use();
-        // uiShader.setMatrix4f("projection", projection);
-        // image->draw();
+        DialogueManager::GetInstance().draw();
 
         glfwSwapBuffers(window);
     }

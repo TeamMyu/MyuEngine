@@ -36,6 +36,11 @@ add_executable(${PROJECT_NAME}
     src/MyuEngine/Character.cpp
     src/MyuEngine/ShaderManager.cpp
     src/MyuEngine/CameraService.cpp
+    src/MyuEngine/Background.cpp
+    src/MyuEngine/ResourceManager.cpp
+    src/MyuEngine/SpriteManager.cpp
+    src/MyuEngine/ScriptManager.cpp
+    src/MyuEngine/DialogueManager.cpp
 )
 
 

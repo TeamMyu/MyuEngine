@@ -1,5 +1,9 @@
-#include "GL/UIText.h"
 #include <iostream>
+
+#include "GL/UIText.h"
+
+#include "MyuEngine/ResourceManager.h"
+#include "MyuEngine/WindowManager.h"
 
 UIText::UIText(Shader& shader, const std::wstring& text, const glm::vec2& position, float scale)
     : UIElement(shader, position, glm::vec2(scale))
@@ -83,8 +87,11 @@ void UIText::loadCharacter(FT_Face &face, wchar_t c)
     characters.insert(std::pair<wchar_t, Character>(c, character));
 }
 
-void UIText::setFont(const std::string& fontPath)
+void UIText::setFont(const std::string& fontName)
 {
+    std::filesystem::path fontsPath = ResourceManager::getInstance()->getFontsPath();
+    std::string fontPath = (fontsPath / (fontName + ".ttf")).generic_string();
+
     // 이전 face가 있다면 정리
     if (face) {
         FT_Done_Face(face);
@@ -95,6 +102,8 @@ void UIText::setFont(const std::string& fontPath)
         std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
         return;
     }
+    else
+        std::cout << "Successfully loaded font from:" << fontPath << std::endl;
 
     // 폰트 크기 설정
     FT_Set_Pixel_Sizes(face, 0, 48);
@@ -122,32 +131,35 @@ void UIText::draw()
     shader->setMatrix4f("model", getTransformMatrix());
     shader->setVector4f("textColor", getColor());
 
+    auto& wm = WindowManager::getInstance();
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(wm.getWidth()), 0.0f, static_cast<float>(wm.getHeight()), -1.0f, 1.0f);
+    shader->setMatrix4f("projection", projection);
+
     glActiveTexture(GL_TEXTURE0);
     vao.bind();
 
     float x = 0.0f;
     float y = 0.0f;
-    float scale = 1.0f;
 
     // 각 문자 렌더링
     for (wchar_t c : text) {
         Character ch = characters[c];
 
-        float xpos = x + ch.bearing.x * scale;
-        float ypos = y - (ch.size.y - ch.bearing.y) * scale;
+        float xpos = x + ch.bearing.x;
+        float ypos = y - (ch.size.y - ch.bearing.y);
 
-        float w = ch.size.x * scale;
-        float h = ch.size.y * scale;
+        float w = ch.size.x;
+        float h = ch.size.y;
 
         // 각 문자에 대한 VBO 업데이트
         float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos,     ypos,       0.0f, 1.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
+            { xpos, ypos + h, 0.0, 0.0 },
+            { xpos, ypos, 0.0, 1.0 },
+            { xpos + w, ypos, 1.0, 1.0 },
 
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-            { xpos + w, ypos + h,   1.0f, 0.0f }
+            { xpos, ypos + h, 0.0, 0.0 },
+            { xpos + w, ypos, 1.0, 1.0 },
+            { xpos + w, ypos + h, 1.0, 0.0 }
         };
 
         // 문자 텍스처 렌더링
@@ -158,7 +170,7 @@ void UIText::draw()
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // 다음 글리프를 위해 위치 업데이트
-        x += (ch.advance >> 6) * scale;
+        x += (ch.advance >> 6);
     }
 
     vao.unbind();

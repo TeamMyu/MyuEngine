@@ -7,6 +7,6 @@ uniform vec4 textColor;
 
 void main()
 {
-    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);
-    color = textColor * sampled;
-} 
+    float alpha = texture(text, TexCoords).r;  // RED 채널만 사용
+    color = vec4(textColor.rgb, textColor.a * alpha);
+}
