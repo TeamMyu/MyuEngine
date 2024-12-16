@@ -1,4 +1,19 @@
 cmake_minimum_required(VERSION 2.8...3.13)
+
+# Homebrew 경로 설정
+if(APPLE)
+    if(CMAKE_APPLE_SILICON_PROCESSOR)
+        # Apple Silicon (M1/M2) Mac의 경우
+        list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew")
+    else()
+        # Intel Mac의 경우
+        list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+    endif()
+
+    # pkg-config 경로 설정
+    set(ENV{PKG_CONFIG_PATH} "/opt/homebrew/lib/pkgconfig:/usr/local/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+endif()
+
 project(MyuEngine VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -59,6 +74,12 @@ include_directories(
 # glfw 링크
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/glfw)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+# zlib 찾기 (여기에 추가)
+find_package(ZLIB REQUIRED)
+if(ZLIB_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
+endif()
 
 # freetype 링크
 add_subdirectory(${PROJECT_SOURCE_DIR}/vendor/freetype)

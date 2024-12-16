@@ -37,7 +37,7 @@ void DialogueManager::initialize(const std::string& textureName, const std::stri
     dialogueText = std::make_shared<UIText>(
         *textShader,
         L"",
-        glm::vec2(100.0f, 200.0f),
+        glm::vec2(150.0f, 100.0f),
         1.0f
     );
     dialogueText->setFont(fontName);

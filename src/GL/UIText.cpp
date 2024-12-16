@@ -106,7 +106,7 @@ void UIText::setFont(const std::string& fontName)
         std::cout << "Successfully loaded font from:" << fontPath << std::endl;
 
     // 폰트 크기 설정
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, 16);
 
     // 텍스처 설정
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

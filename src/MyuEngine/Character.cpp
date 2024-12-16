@@ -12,7 +12,7 @@ Character::Character(std::string textureName, glm::vec2 position)
     this->sprite = std::make_shared<Sprite>(
         this->texture,
         glm::vec3(position.x, position.y, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.5f, 1.5f, 1.0f),
         glm::vec3(0.0f)
     );
 }
